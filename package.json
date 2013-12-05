@@ -12,7 +12,8 @@
         "coffee-script": "1.6.3"
     },
     "peerDependencies": {
-        "voxel-engine": ">=0.19.0"
+        "voxel-engine": ">=0.19.0",
+        "voxel-reach": ">=0.0.1"
     },
     "scripts": {
         "build": "coffee --compile *.coffee",
