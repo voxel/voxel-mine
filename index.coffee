@@ -29,7 +29,8 @@ Mine::bindEvents = ->
 
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
-      this.game.setBlock hit_voxel, 0
-      this.progress = 0
       # TODO: reset this.progress if mouse released
+      this.progress = 0
+
+      game.emit 'break', hit_voxel
 

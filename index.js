@@ -31,8 +31,8 @@
       }
       _this.progress += 1;
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
-        _this.game.setBlock(hit_voxel, 0);
-        return _this.progress = 0;
+        _this.progress = 0;
+        return game.emit('break', hit_voxel);
       }
     });
   };
