@@ -9,9 +9,14 @@
   Mine = function(game, opts) {
     this.game = game;
     opts = opts != null ? opts : {};
-    opts.defaultHardness || (opts.defaultHardness = 0);
+    if (opts.defaultHardness == null) {
+      opts.defaultHardness = 3;
+    }
+    if (opts.instaMine == null) {
+      opts.instaMine = false;
+    }
     this.opts = opts;
-    this.hardness = opts.defaultHardness;
+    this.instaMine = opts.instaMine;
     this.progress = 0;
     this.bindEvents();
     return this;
@@ -25,7 +30,7 @@
         return;
       }
       _this.progress += 1;
-      if (_this.progress > _this.hardness) {
+      if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.game.setBlock(hit_voxel, 0);
         return _this.progress = 0;
       }

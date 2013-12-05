@@ -6,10 +6,12 @@ module.exports = (game, opts) ->
 Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
-  opts.defaultHardness || = 0
+  opts.defaultHardness ?= 3
+  opts.instaMine ?= false
+
   this.opts = opts
 
-  this.hardness = opts.defaultHardness
+  this.instaMine = opts.instaMine
   this.progress = 0
 
   this.bindEvents()
@@ -26,7 +28,7 @@ Mine::bindEvents = ->
     this.progress += 1
 
     # TODO: variable hardness based on block type
-    if this.progress > this.hardness
+    if this.instaMine || this.progress > this.opts.defaultHardness
       this.game.setBlock hit_voxel, 0
       this.progress = 0
       # TODO: reset this.progress if mouse released
