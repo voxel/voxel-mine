@@ -7,9 +7,25 @@
   };
 
   Mine = function(game, opts) {
+    var _this = this;
     this.game = game;
     opts = opts != null ? opts : {};
-    return console.log("mine");
+    if (opts.reachDistance == null) {
+      opts.reachDistance = 8;
+    }
+    return game.on('fire', function(target, state) {
+      var hit;
+      if (!state.fire) {
+        return;
+      }
+      hit = game.raycastVoxels(game.cameraPosition(), game.cameraVector(), opts.reachDistance);
+      if (hit.voxel == null) {
+        console.log("no block mined");
+        return;
+      }
+      _this.game.setBlock(hit.voxel, 0);
+      return console.log("instamined ", hit.voxel);
+    });
   };
 
 }).call(this);
