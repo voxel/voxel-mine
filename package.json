@@ -1,0 +1,22 @@
+{
+    "name": "voxel-mine",
+    "description": "mine voxels",
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:deathcap/voxel-mine.git"
+    },
+    "dependencies": {
+    },
+    "devDependencies": {
+        "coffee-script": "1.6.3"
+    },
+    "peerDependencies": {
+        "voxel-engine": ">=0.19.0"
+    },
+    "scripts": {
+        "build": "coffee --compile *.coffee",
+        "prepublish": "coffee --compile *.coffee",
+        "watch": "coffee --watch --compile *.coffee"
+    }
+}

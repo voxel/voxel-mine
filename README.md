@@ -1,0 +1,6 @@
+# voxel-mining
+
+## License
+
+MIT
+
