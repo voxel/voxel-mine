@@ -7,18 +7,28 @@
   };
 
   Mine = function(game, opts) {
-    var _this = this;
     this.game = game;
     opts = opts != null ? opts : {};
-    if (opts.reachDistance == null) {
-      opts.reachDistance = 8;
-    }
-    return game.on('break', function(hit_voxel) {
+    opts.defaultHardness || (opts.defaultHardness = 0);
+    this.opts = opts;
+    this.hardness = opts.defaultHardness;
+    this.progress = 0;
+    this.bindEvents();
+    return this;
+  };
+
+  Mine.prototype.bindEvents = function() {
+    var _this = this;
+    return this.game.on('mining', function(hit_voxel) {
       if (hit_voxel == null) {
         console.log("no block mined");
         return;
       }
-      return _this.game.setBlock(hit_voxel, 0);
+      _this.progress += 1;
+      if (_this.progress > _this.hardness) {
+        _this.game.setBlock(hit_voxel, 0);
+        return _this.progress = 0;
+      }
     });
   };
 

@@ -6,11 +6,28 @@ module.exports = (game, opts) ->
 Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
-  opts.reachDistance ?= 8
+  opts.defaultHardness || = 0
+  this.opts = opts
 
-  game.on 'break', (hit_voxel) =>
+  this.hardness = opts.defaultHardness
+  this.progress = 0
+
+  this.bindEvents()
+
+  this
+
+Mine::bindEvents = ->
+  this.game.on 'mining', (hit_voxel) =>
     if not hit_voxel?
       console.log("no block mined")
       return
 
-    this.game.setBlock hit_voxel, 0
+    # TODO: show destroy stage overlay
+    this.progress += 1
+
+    # TODO: variable hardness based on block type
+    if this.progress > this.hardness
+      this.game.setBlock hit_voxel, 0
+      this.progress = 0
+      # TODO: reset this.progress if mouse released
+
