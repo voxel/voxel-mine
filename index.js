@@ -32,16 +32,15 @@
 
   Mine.prototype.bindEvents = function() {
     var _this = this;
-    return this.reach.on('mining', function(hit_voxel) {
-      if (hit_voxel == null) {
+    return this.reach.on('mining', function(target) {
+      if (!target) {
         console.log("no block mined");
         return;
       }
       _this.progress += 1;
-      _this.drawDamage(hit_voxel);
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.progress = 0;
-        return _this.emit('break', hit_voxel);
+        return _this.emit('break', target.voxel);
       }
     });
   };

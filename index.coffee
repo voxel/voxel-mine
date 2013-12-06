@@ -25,21 +25,21 @@ Mine = (game, opts) ->
   this
 
 Mine::bindEvents = ->
-  this.reach.on 'mining', (hit_voxel) =>
-    if not hit_voxel?
+  this.reach.on 'mining', (target) =>
+    if not target
       console.log("no block mined")
       return
 
-    # TODO: show destroy stage overlay
     this.progress += 1
-    this.drawDamage(hit_voxel)
+    # TODO: show destroy stage overlay
+    #this.drawDamage(target)
 
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
       # TODO: reset this.progress if mouse released
       this.progress = 0
 
-      this.emit 'break', hit_voxel
+      this.emit 'break', target.voxel
 
 Mine::drawDamage = (at) ->
   geometry = new this.game.THREE.CubeGeometry(1, 1, 1)
