@@ -1,5 +1,8 @@
 # vim: set shiftwidth=2 tabstop=2 softtabstop=2 expandtab:
 
+inherits = require 'inherits'
+EventEmitter = (require 'events').EventEmitter
+
 module.exports = (game, opts) ->
   return new Mine(game, opts)
 
@@ -8,18 +11,21 @@ Mine = (game, opts) ->
   opts = opts ? {}
   opts.defaultHardness ?= 3
   opts.instaMine ?= false
+  if !opts.reach?
+    throw "voxel-mine requires 'reach' option set to voxel-reach instance"
 
   this.opts = opts
 
   this.instaMine = opts.instaMine
   this.progress = 0
+  this.reach = opts.reach
 
   this.bindEvents()
 
   this
 
 Mine::bindEvents = ->
-  this.game.on 'mining', (hit_voxel) =>
+  this.reach.on 'mining', (hit_voxel) =>
     if not hit_voxel?
       console.log("no block mined")
       return
@@ -32,5 +38,6 @@ Mine::bindEvents = ->
       # TODO: reset this.progress if mouse released
       this.progress = 0
 
-      game.emit 'break', hit_voxel
+      this.emit 'break', hit_voxel
 
+inherits Mine, EventEmitter
