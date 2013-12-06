@@ -32,6 +32,7 @@ Mine::bindEvents = ->
 
     # TODO: show destroy stage overlay
     this.progress += 1
+    this.drawDamage(hit_voxel)
 
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
@@ -39,5 +40,16 @@ Mine::bindEvents = ->
       this.progress = 0
 
       this.emit 'break', hit_voxel
+
+Mine::drawDamage = (at) ->
+  geometry = new this.game.THREE.CubeGeometry(1, 1, 1)
+  material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
+  mesh = new this.game.THREE.Mesh(geometry, material)
+  obj = new game.THREE.Object3D()
+
+  obj.add(mesh)
+  obj.position.set(at[0] + 0.5, at[1] + 0.5, at[2] + 0.5)
+  
+  cube = game.addItem({mesh: obj, size: 1})
 
 inherits Mine, EventEmitter

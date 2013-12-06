@@ -38,10 +38,25 @@
         return;
       }
       _this.progress += 1;
+      _this.drawDamage(hit_voxel);
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.progress = 0;
         return _this.emit('break', hit_voxel);
       }
+    });
+  };
+
+  Mine.prototype.drawDamage = function(at) {
+    var cube, geometry, material, mesh, obj;
+    geometry = new this.game.THREE.CubeGeometry(1, 1, 1);
+    material = new this.game.THREE.MeshLambertMaterial();
+    mesh = new this.game.THREE.Mesh(geometry, material);
+    obj = new game.THREE.Object3D();
+    obj.add(mesh);
+    obj.position.set(at[0] + 0.5, at[1] + 0.5, at[2] + 0.5);
+    return cube = game.addItem({
+      mesh: obj,
+      size: 1
     });
   };
 
