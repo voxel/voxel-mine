@@ -65,7 +65,7 @@ Mine::drawDamage = (target) ->
   console.log(geometry)
 
   material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
-  material.side = this.game.THREE.DoubleSide # TODO: FrontSide
+  material.side = this.game.THREE.FrontSide
   mesh = new this.game.THREE.Mesh(geometry, material)
   obj = new game.THREE.Object3D()
 

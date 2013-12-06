@@ -76,7 +76,7 @@
     geometry.computeVertexNormals();
     console.log(geometry);
     material = new this.game.THREE.MeshLambertMaterial();
-    material.side = this.game.THREE.DoubleSide;
+    material.side = this.game.THREE.FrontSide;
     mesh = new this.game.THREE.Mesh(geometry, material);
     obj = new game.THREE.Object3D();
     obj.add(mesh);
