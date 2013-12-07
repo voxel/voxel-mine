@@ -71,6 +71,7 @@ Mine::bindEvents = ->
       return
 
     this.destroyOverlay()
+    this.progress = 0
 
 
 Mine::createOverlay = (target) ->

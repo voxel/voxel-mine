@@ -85,7 +85,8 @@
       if (!target) {
         return;
       }
-      return _this.destroyOverlay();
+      _this.destroyOverlay();
+      return _this.progress = 0;
     });
   };
 
