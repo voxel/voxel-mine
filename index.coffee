@@ -63,6 +63,9 @@ Mine::drawDamage = (target) ->
 
   material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
   material.side = this.game.THREE.FrontSide
+  material.transparent = true
+  material.depthWrite = false
+  material.depthTest = false
   mesh = new this.game.THREE.Mesh(geometry, material)
   obj = new game.THREE.Object3D()
 
