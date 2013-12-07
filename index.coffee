@@ -9,11 +9,11 @@ module.exports = (game, opts) ->
 Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
-  opts.defaultHardness ?= 8
+  opts.defaultHardness ?= 9
   opts.instaMine ?= false
   opts.progressTexturesBase ?= "ProgrammerArt/textures/blocks/destroy_stage_"
   opts.progressTexturesExt ?= ".png"
-  opts.progressTexturesCount ?= 8
+  opts.progressTexturesCount ?= 9
 
   opts.applyTextureParams ?= (texture) =>
     texture.magFilter = this.game.THREE.NearestFilter
@@ -41,7 +41,6 @@ Mine::setupTextures = ->
 
   for i in [0..this.opts.progressTexturesCount]
     path = this.opts.progressTexturesBase + i + this.opts.progressTexturesExt
-    console.log("path",i,path)
     this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
 
 Mine::bindEvents = ->

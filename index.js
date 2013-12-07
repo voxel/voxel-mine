@@ -15,7 +15,7 @@
     this.game = game;
     opts = opts != null ? opts : {};
     if (opts.defaultHardness == null) {
-      opts.defaultHardness = 8;
+      opts.defaultHardness = 9;
     }
     if (opts.instaMine == null) {
       opts.instaMine = false;
@@ -27,7 +27,7 @@
       opts.progressTexturesExt = ".png";
     }
     if (opts.progressTexturesCount == null) {
-      opts.progressTexturesCount = 8;
+      opts.progressTexturesCount = 9;
     }
     if (opts.applyTextureParams == null) {
       opts.applyTextureParams = function(texture) {
@@ -56,7 +56,6 @@
     _results = [];
     for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       path = this.opts.progressTexturesBase + i + this.opts.progressTexturesExt;
-      console.log("path", i, path);
       _results.push(this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path)));
     }
     return _results;
