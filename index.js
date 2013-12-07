@@ -188,8 +188,9 @@
     this.opts.applyTextureParams(material.map);
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
-    material.depthWrite = false;
-    material.depthTest = false;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = -1.0;
+    material.polygonOffsetUnits = -1.0;
     mesh = new this.game.THREE.Mesh(geometry, material);
     obj = new this.game.THREE.Object3D();
     obj.add(mesh);
