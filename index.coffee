@@ -75,6 +75,9 @@ Mine::bindEvents = ->
 
 
 Mine::createOverlay = (target) ->
+  if this.instaMine
+    return
+
   this.destroyOverlay()
 
   geometry = new this.game.THREE.Geometry()

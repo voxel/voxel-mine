@@ -92,6 +92,9 @@
 
   Mine.prototype.createOverlay = function(target) {
     var geometry, material, mesh, obj, offset;
+    if (this.instaMine) {
+      return;
+    }
     this.destroyOverlay();
     geometry = new this.game.THREE.Geometry();
     if (target.normal[2] === 1) {
