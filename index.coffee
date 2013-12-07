@@ -56,15 +56,14 @@ Mine::bindEvents = ->
 
 
 Mine::createOverlay = (target) ->
-  a = {x:0, y:0}
-  b = {x:1, y:1}
+  this.destroyOverlay()
 
   # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
   geometry = new this.game.THREE.Geometry()
-  geometry.vertices.push(new this.game.THREE.Vector3(a.x, a.y, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(b.x, a.y, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(b.x, b.y, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(a.x, b.y, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
 
   geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
   geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
