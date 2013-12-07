@@ -31,8 +31,6 @@ Mine::bindEvents = ->
       return
 
     this.progress += 1
-    # TODO: show destroy stage overlay
-    this.drawDamage(target)
 
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
@@ -40,6 +38,20 @@ Mine::bindEvents = ->
       this.progress = 0
 
       this.emit 'break', target.voxel
+
+  this.reach.on 'start mining', (target) =>
+    if not target
+      return
+
+    console.log "start mining", target
+    this.drawDamage(target)
+
+  this.reach.on 'stop mining', (target) =>
+    if not target
+      return
+
+    console.log "stop mining", target
+
 
 Mine::drawDamage = (target) ->
   a = {x:0, y:0}
@@ -58,8 +70,6 @@ Mine::drawDamage = (target) ->
   geometry.computeCentroids()
   geometry.computeFaceNormals()
   geometry.computeVertexNormals()
-
-  console.log(geometry)
 
   material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
   material.side = this.game.THREE.FrontSide

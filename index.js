@@ -32,17 +32,29 @@
 
   Mine.prototype.bindEvents = function() {
     var _this = this;
-    return this.reach.on('mining', function(target) {
+    this.reach.on('mining', function(target) {
       if (!target) {
         console.log("no block mined");
         return;
       }
       _this.progress += 1;
-      _this.drawDamage(target);
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.progress = 0;
         return _this.emit('break', target.voxel);
       }
+    });
+    this.reach.on('start mining', function(target) {
+      if (!target) {
+        return;
+      }
+      console.log("start mining", target);
+      return _this.drawDamage(target);
+    });
+    return this.reach.on('stop mining', function(target) {
+      if (!target) {
+        return;
+      }
+      return console.log("stop mining", target);
     });
   };
 
@@ -66,7 +78,6 @@
     geometry.computeCentroids();
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
-    console.log(geometry);
     material = new this.game.THREE.MeshLambertMaterial();
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
