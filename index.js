@@ -19,6 +19,10 @@
     if (opts.instaMine == null) {
       opts.instaMine = false;
     }
+    if (opts.progressTexture == null) {
+      opts.progressTexture = this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png");
+    }
+    console.log(opts.progressTexture);
     if (opts.reach == null) {
       throw "voxel-mine requires 'reach' option set to voxel-reach instance";
     }
@@ -107,7 +111,73 @@
     geometry.computeCentroids();
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
+    geometry.faceVertexUvs = [
+      [
+        [
+          {
+            x: 0,
+            y: 0
+          }, {
+            x: 0,
+            y: 1
+          }, {
+            x: 1,
+            y: 0
+          }, {
+            x: 1,
+            y: 1
+          }
+        ], [
+          {
+            x: 0,
+            y: 0
+          }, {
+            x: 0,
+            y: 1
+          }, {
+            x: 1,
+            y: 0
+          }, {
+            x: 1,
+            y: 1
+          }
+        ], [
+          {
+            x: 0,
+            y: 0
+          }, {
+            x: 0,
+            y: 1
+          }, {
+            x: 1,
+            y: 0
+          }, {
+            x: 1,
+            y: 1
+          }
+        ], [
+          {
+            x: 0,
+            y: 0
+          }, {
+            x: 0,
+            y: 1
+          }, {
+            x: 1,
+            y: 0
+          }, {
+            x: 1,
+            y: 1
+          }
+        ]
+      ]
+    ];
     material = new this.game.THREE.MeshLambertMaterial();
+    material.map = this.opts.progressTexture;
+    material.map.magFilter = this.game.THREE.NearestFilter;
+    material.map.minFilter = this.game.THREE.LinearMipMapLinearFilter;
+    material.map.wrapT = this.game.THREE.RepeatWrapping;
+    material.map.wrapS = this.game.THREE.RepeatWrapping;
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
     material.depthWrite = false;
