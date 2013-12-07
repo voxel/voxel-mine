@@ -48,14 +48,12 @@
       if (!target) {
         return;
       }
-      console.log("start mining", target);
       return _this.createOverlay(target);
     });
     return this.reach.on('stop mining', function(target) {
       if (!target) {
         return;
       }
-      console.log("stop mining", target);
       return _this.destroyOverlay();
     });
   };
@@ -64,10 +62,24 @@
     var geometry, material, mesh, obj;
     this.destroyOverlay();
     geometry = new this.game.THREE.Geometry();
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+    if (Math.abs(target.normal[2]) === 1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+    } else if (Math.abs(target.normal[1]) === 1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+    } else if (Math.abs(target.normal[0]) === 1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+    } else {
+      console.log("unknown face");
+    }
     geometry.faces.push(new this.game.THREE.Face3(0, 1, 2));
     geometry.faces.push(new this.game.THREE.Face3(0, 2, 3));
     geometry.computeCentroids();
@@ -81,7 +93,7 @@
     mesh = new this.game.THREE.Mesh(geometry, material);
     obj = new this.game.THREE.Object3D();
     obj.add(mesh);
-    obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1);
+    obj.position.set(target.voxel[0] + target.normal[0], target.voxel[1] + target.normal[1], target.voxel[2] + target.normal[2]);
     this.overlay = this.game.addItem({
       mesh: obj,
       size: 1
@@ -93,7 +105,6 @@
     if (!this.overlay) {
       return;
     }
-    console.log("removing", this.overlay);
     this.game.removeItem(this.overlay);
     return this.overlay = null;
   };

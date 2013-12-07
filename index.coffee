@@ -44,27 +44,38 @@ Mine::bindEvents = ->
     if not target
       return
 
-    console.log "start mining", target
     this.createOverlay(target)
 
   this.reach.on 'stop mining', (target) =>
     if not target
       return
 
-    console.log "stop mining", target
     this.destroyOverlay()
 
 
 Mine::createOverlay = (target) ->
   this.destroyOverlay()
 
-  # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
   geometry = new this.game.THREE.Geometry()
-  geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
-  geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+  if Math.abs(target.normal[2]) == 1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+  else if Math.abs(target.normal[1]) == 1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+  else if Math.abs(target.normal[0]) == 1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+  else
+    console.log "unknown face"
 
+  # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
   geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
   geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
 
@@ -81,7 +92,7 @@ Mine::createOverlay = (target) ->
   obj = new this.game.THREE.Object3D()
 
   obj.add(mesh)
-  obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1) # TODO: side
+  obj.position.set(target.voxel[0] + target.normal[0], target.voxel[1] + target.normal[1], target.voxel[2] + target.normal[2]) # TODO: side
 
   this.overlay = this.game.addItem({mesh: obj, size: 1})
 
@@ -91,7 +102,6 @@ Mine::destroyOverlay = () ->
   if not this.overlay
     return
 
-  console.log("removing",this.overlay)
   this.game.removeItem(this.overlay)
   this.overlay = null
 
