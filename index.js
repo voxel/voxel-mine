@@ -11,6 +11,7 @@
   };
 
   Mine = function(game, opts) {
+    var _this = this;
     this.game = game;
     opts = opts != null ? opts : {};
     if (opts.defaultHardness == null) {
@@ -22,7 +23,14 @@
     if (opts.progressTexture == null) {
       opts.progressTexture = this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png");
     }
-    console.log(opts.progressTexture);
+    if (opts.applyTextureParams == null) {
+      opts.applyTextureParams = function(texture) {
+        texture.magFilter = _this.game.THREE.NearestFilter;
+        texture.minFilter = _this.game.THREE.LinearMipMapLinearFilter;
+        texture.wrapT = _this.game.THREE.RepeatWrapping;
+        return texture.wrapS = _this.game.THREE.RepeatWrapping;
+      };
+    }
     if (opts.reach == null) {
       throw "voxel-mine requires 'reach' option set to voxel-reach instance";
     }
@@ -174,10 +182,7 @@
     ];
     material = new this.game.THREE.MeshLambertMaterial();
     material.map = this.opts.progressTexture;
-    material.map.magFilter = this.game.THREE.NearestFilter;
-    material.map.minFilter = this.game.THREE.LinearMipMapLinearFilter;
-    material.map.wrapT = this.game.THREE.RepeatWrapping;
-    material.map.wrapS = this.game.THREE.RepeatWrapping;
+    this.opts.applyTextureParams(material.map);
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
     material.depthWrite = false;

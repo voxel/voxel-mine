@@ -12,7 +12,12 @@ Mine = (game, opts) ->
   opts.defaultHardness ?= 3
   opts.instaMine ?= false
   opts.progressTexture ?= this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png")
-  console.log(opts.progressTexture)
+  opts.applyTextureParams ?= (texture) =>
+    texture.magFilter = this.game.THREE.NearestFilter
+    texture.minFilter = this.game.THREE.LinearMipMapLinearFilter
+    texture.wrapT = this.game.THREE.RepeatWrapping
+    texture.wrapS = this.game.THREE.RepeatWrapping
+
   if !opts.reach?
     throw "voxel-mine requires 'reach' option set to voxel-reach instance"
 
@@ -143,10 +148,7 @@ Mine::createOverlay = (target) ->
   material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
   material.map = this.opts.progressTexture
 
-  material.map.magFilter = this.game.THREE.NearestFilter
-  material.map.minFilter = this.game.THREE.LinearMipMapLinearFilter
-  material.map.wrapT = this.game.THREE.RepeatWrapping
-  material.map.wrapS = this.game.THREE.RepeatWrapping
+  this.opts.applyTextureParams(material.map)
 
   material.side = this.game.THREE.FrontSide
   material.transparent = true
