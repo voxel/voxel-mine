@@ -15,13 +15,19 @@
     this.game = game;
     opts = opts != null ? opts : {};
     if (opts.defaultHardness == null) {
-      opts.defaultHardness = 3;
+      opts.defaultHardness = 8;
     }
     if (opts.instaMine == null) {
       opts.instaMine = false;
     }
-    if (opts.progressTextures == null) {
-      opts.progressTextures = [this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_3.png"), this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png"), this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_7.png")];
+    if (opts.progressTexturesBase == null) {
+      opts.progressTexturesBase = "ProgrammerArt/textures/blocks/destroy_stage_";
+    }
+    if (opts.progressTexturesExt == null) {
+      opts.progressTexturesExt = ".png";
+    }
+    if (opts.progressTexturesCount == null) {
+      opts.progressTexturesCount = 8;
     }
     if (opts.applyTextureParams == null) {
       opts.applyTextureParams = function(texture) {
@@ -39,8 +45,21 @@
     this.progress = 0;
     this.reach = opts.reach;
     this.overlay = null;
+    this.setupTextures();
     this.bindEvents();
     return this;
+  };
+
+  Mine.prototype.setupTextures = function() {
+    var i, path, _i, _ref, _results;
+    this.progressTextures = [];
+    _results = [];
+    for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      path = this.opts.progressTexturesBase + i + this.opts.progressTexturesExt;
+      console.log("path", i, path);
+      _results.push(this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path)));
+    }
+    return _results;
   };
 
   Mine.prototype.bindEvents = function() {
@@ -140,7 +159,7 @@
       ]
     ];
     material = new this.game.THREE.MeshLambertMaterial();
-    material.map = this.opts.progressTextures[0];
+    material.map = this.progressTextures[0];
     this.opts.applyTextureParams(material.map);
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
@@ -159,8 +178,8 @@
 
   Mine.prototype.updateForStage = function() {
     var index, texture;
-    index = this.progress % this.opts.progressTextures.length;
-    texture = this.opts.progressTextures[index];
+    index = this.progress % this.progressTextures.length;
+    texture = this.progressTextures[index];
     return this.setOverlayTexture(texture);
   };
 

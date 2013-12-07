@@ -9,14 +9,11 @@ module.exports = (game, opts) ->
 Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
-  opts.defaultHardness ?= 3
+  opts.defaultHardness ?= 8
   opts.instaMine ?= false
-  opts.progressTextures ?= [
-    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_3.png"),
-    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png"),
-    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_7.png"),
-    ]
-
+  opts.progressTexturesBase ?= "ProgrammerArt/textures/blocks/destroy_stage_"
+  opts.progressTexturesExt ?= ".png"
+  opts.progressTexturesCount ?= 8
 
   opts.applyTextureParams ?= (texture) =>
     texture.magFilter = this.game.THREE.NearestFilter
@@ -34,9 +31,18 @@ Mine = (game, opts) ->
   this.reach = opts.reach
 
   this.overlay = null
+  this.setupTextures()
   this.bindEvents()
 
   this
+
+Mine::setupTextures = ->
+  this.progressTextures = []
+
+  for i in [0..this.opts.progressTexturesCount]
+    path = this.opts.progressTexturesBase + i + this.opts.progressTexturesExt
+    console.log("path",i,path)
+    this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
 
 Mine::bindEvents = ->
   this.reach.on 'mining', (target) =>
@@ -134,7 +140,7 @@ Mine::createOverlay = (target) ->
 
   material = new this.game.THREE.MeshLambertMaterial()
 
-  material.map = this.opts.progressTextures[0]
+  material.map = this.progressTextures[0]
   this.opts.applyTextureParams(material.map)
 
   material.side = this.game.THREE.FrontSide
@@ -155,8 +161,8 @@ Mine::createOverlay = (target) ->
 
 # Set overlay texture based on mining progress stage
 Mine::updateForStage = () ->
-  index = this.progress % this.opts.progressTextures.length  # TODO: scale
-  texture = this.opts.progressTextures[index]
+  index = this.progress % this.progressTextures.length  # TODO: scale
+  texture = this.progressTextures[index]
 
   this.setOverlayTexture(texture)
 
