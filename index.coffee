@@ -57,23 +57,46 @@ Mine::createOverlay = (target) ->
   this.destroyOverlay()
 
   geometry = new this.game.THREE.Geometry()
-  if Math.abs(target.normal[2]) == 1
+  # TODO: actually compute this
+  if target.normal[2] == 1
     geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-  else if Math.abs(target.normal[1]) == 1
+    offset = [0, 0, 1]
+  else if target.normal[1] == 1
     geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
     geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-  else if Math.abs(target.normal[0]) == 1
+    offset = [0, 1, 0]
+  else if target.normal[0] == 1
     geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
     geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
     geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    offset = [1, 0, 0]
+
+  else if target.normal[0] == -1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    offset = [0, 0, 0]
+  else if target.normal[1] == -1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    offset = [0, 0, 0]
+  else if target.normal[2] == -1
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    offset = [0, 0, 0]
   else
-    console.log "unknown face"
+    console.log "unknown face", target.normal
 
   # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
   geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
@@ -84,7 +107,7 @@ Mine::createOverlay = (target) ->
   geometry.computeVertexNormals()
 
   material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
-  material.side = this.game.THREE.FrontSide
+  material.side = this.game.THREE.DoubleSide #FrontSide
   material.transparent = true
   material.depthWrite = false
   material.depthTest = false
@@ -92,7 +115,9 @@ Mine::createOverlay = (target) ->
   obj = new this.game.THREE.Object3D()
 
   obj.add(mesh)
-  obj.position.set(target.voxel[0] + target.normal[0], target.voxel[1] + target.normal[1], target.voxel[2] + target.normal[2]) # TODO: side
+  obj.position.set(target.voxel[0] + offset[0], 
+                   target.voxel[1] + offset[1],
+                   target.voxel[2] + offset[2])
 
   this.overlay = this.game.addItem({mesh: obj, size: 1})
 

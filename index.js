@@ -59,26 +59,47 @@
   };
 
   Mine.prototype.createOverlay = function(target) {
-    var geometry, material, mesh, obj;
+    var geometry, material, mesh, obj, offset;
     this.destroyOverlay();
     geometry = new this.game.THREE.Geometry();
-    if (Math.abs(target.normal[2]) === 1) {
+    if (target.normal[2] === 1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
-    } else if (Math.abs(target.normal[1]) === 1) {
+      offset = [0, 0, 1];
+    } else if (target.normal[1] === 1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
-    } else if (Math.abs(target.normal[0]) === 1) {
+      offset = [0, 1, 0];
+    } else if (target.normal[0] === 1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+      offset = [1, 0, 0];
+    } else if (target.normal[0] === -1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+      offset = [0, 0, 0];
+    } else if (target.normal[1] === -1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+      offset = [0, 0, 0];
+    } else if (target.normal[2] === -1) {
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+      offset = [0, 0, 0];
     } else {
-      console.log("unknown face");
+      console.log("unknown face", target.normal);
     }
     geometry.faces.push(new this.game.THREE.Face3(0, 1, 2));
     geometry.faces.push(new this.game.THREE.Face3(0, 2, 3));
@@ -86,14 +107,14 @@
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
     material = new this.game.THREE.MeshLambertMaterial();
-    material.side = this.game.THREE.FrontSide;
+    material.side = this.game.THREE.DoubleSide;
     material.transparent = true;
     material.depthWrite = false;
     material.depthTest = false;
     mesh = new this.game.THREE.Mesh(geometry, material);
     obj = new this.game.THREE.Object3D();
     obj.add(mesh);
-    obj.position.set(target.voxel[0] + target.normal[0], target.voxel[1] + target.normal[1], target.voxel[2] + target.normal[2]);
+    obj.position.set(target.voxel[0] + offset[0], target.voxel[1] + offset[1], target.voxel[2] + offset[2]);
     this.overlay = this.game.addItem({
       mesh: obj,
       size: 1
