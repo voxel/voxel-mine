@@ -70,9 +70,9 @@
       offset = [0, 0, 1];
     } else if (target.normal[1] === 1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
       offset = [0, 1, 0];
     } else if (target.normal[0] === 1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
@@ -82,9 +82,9 @@
       offset = [1, 0, 0];
     } else if (target.normal[0] === -1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1));
+      geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
       offset = [0, 0, 0];
     } else if (target.normal[1] === -1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
@@ -94,12 +94,13 @@
       offset = [0, 0, 0];
     } else if (target.normal[2] === -1) {
       geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
-      geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
       geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0));
+      geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0));
       offset = [0, 0, 0];
     } else {
       console.log("unknown face", target.normal);
+      return;
     }
     geometry.faces.push(new this.game.THREE.Face3(0, 1, 2));
     geometry.faces.push(new this.game.THREE.Face3(0, 2, 3));
@@ -107,7 +108,7 @@
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
     material = new this.game.THREE.MeshLambertMaterial();
-    material.side = this.game.THREE.DoubleSide;
+    material.side = this.game.THREE.FrontSide;
     material.transparent = true;
     material.depthWrite = false;
     material.depthTest = false;
