@@ -21,7 +21,7 @@
       opts.instaMine = false;
     }
     if (opts.progressTexturesBase == null) {
-      opts.progressTexturesBase = "ProgrammerArt/textures/blocks/destroy_stage_";
+      opts.progressTexturesBase = void 0;
     }
     if (opts.progressTexturesExt == null) {
       opts.progressTexturesExt = ".png";
@@ -44,6 +44,7 @@
     this.instaMine = opts.instaMine;
     this.progress = 0;
     this.reach = opts.reach;
+    this.texturesEnabled = this.opts.progressTexturesBase != null;
     this.overlay = null;
     this.setupTextures();
     this.bindEvents();
@@ -52,6 +53,9 @@
 
   Mine.prototype.setupTextures = function() {
     var i, path, _i, _ref, _results;
+    if (!this.texturesEnabled) {
+      return;
+    }
     this.progressTextures = [];
     _results = [];
     for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
@@ -96,7 +100,7 @@
 
   Mine.prototype.createOverlay = function(target) {
     var geometry, material, mesh, obj, offset;
-    if (this.instaMine) {
+    if (this.instaMine || !this.texturesEnabled) {
       return;
     }
     this.destroyOverlay();
@@ -199,13 +203,16 @@
 
   Mine.prototype.updateForStage = function() {
     var index, texture;
+    if (!this.texturesEnabled) {
+      return;
+    }
     index = Math.floor((this.progress / this.getHardness()) * (this.progressTextures.length - 1));
     texture = this.progressTextures[index];
     return this.setOverlayTexture(texture);
   };
 
   Mine.prototype.setOverlayTexture = function(texture) {
-    if (!this.overlay) {
+    if (!this.overlay || !this.texturesEnabled) {
       return;
     }
     this.opts.applyTextureParams(texture);
@@ -214,7 +221,7 @@
   };
 
   Mine.prototype.destroyOverlay = function() {
-    if (!this.overlay) {
+    if (!this.overlay || !this.texturesEnabled) {
       return;
     }
     this.game.removeItem(this.overlay);

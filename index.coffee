@@ -11,7 +11,7 @@ Mine = (game, opts) ->
   opts = opts ? {}
   opts.defaultHardness ?= 9
   opts.instaMine ?= false
-  opts.progressTexturesBase ?= "ProgrammerArt/textures/blocks/destroy_stage_"
+  opts.progressTexturesBase ?= undefined
   opts.progressTexturesExt ?= ".png"
   opts.progressTexturesCount ?= 9
 
@@ -30,6 +30,7 @@ Mine = (game, opts) ->
   this.progress = 0
   this.reach = opts.reach
 
+  this.texturesEnabled = this.opts.progressTexturesBase?
   this.overlay = null
   this.setupTextures()
   this.bindEvents()
@@ -37,6 +38,9 @@ Mine = (game, opts) ->
   this
 
 Mine::setupTextures = ->
+  if not this.texturesEnabled
+    return
+
   this.progressTextures = []
 
   for i in [0..this.opts.progressTexturesCount]
@@ -77,7 +81,7 @@ Mine::bindEvents = ->
 
 
 Mine::createOverlay = (target) ->
-  if this.instaMine
+  if this.instaMine or not this.texturesEnabled
     return
 
   this.destroyOverlay()
@@ -171,13 +175,16 @@ Mine::createOverlay = (target) ->
 
 # Set overlay texture based on mining progress stage
 Mine::updateForStage = () ->
+  if not this.texturesEnabled
+    return
+
   index = Math.floor((this.progress / this.getHardness()) * (this.progressTextures.length - 1))
   texture = this.progressTextures[index]
 
   this.setOverlayTexture(texture)
 
 Mine::setOverlayTexture = (texture) ->
-  if not this.overlay
+  if not this.overlay or not this.texturesEnabled
     return
 
   # TODO: destroy_stage_N
@@ -186,7 +193,7 @@ Mine::setOverlayTexture = (texture) ->
   this.overlay.mesh.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
-  if not this.overlay
+  if not this.overlay or not this.texturesEnabled
     return
 
   this.game.removeItem(this.overlay)
