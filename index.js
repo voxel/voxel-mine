@@ -61,6 +61,10 @@
     return _results;
   };
 
+  Mine.prototype.getHardness = function(target) {
+    return this.opts.defaultHardness;
+  };
+
   Mine.prototype.bindEvents = function() {
     var _this = this;
     this.reach.on('mining', function(target) {
@@ -69,11 +73,11 @@
         return;
       }
       _this.progress += 1;
-      _this.updateForStage();
-      if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
+      if (_this.instaMine || _this.progress > _this.getHardness(target)) {
         _this.progress = 0;
-        return _this.emit('break', target.voxel);
+        _this.emit('break', target.voxel);
       }
+      return _this.updateForStage();
     });
     this.reach.on('start mining', function(target) {
       if (!target) {
@@ -195,7 +199,7 @@
 
   Mine.prototype.updateForStage = function() {
     var index, texture;
-    index = this.progress % this.progressTextures.length;
+    index = Math.floor((this.progress / this.getHardness()) * (this.progressTextures.length - 1));
     texture = this.progressTextures[index];
     return this.setOverlayTexture(texture);
   };
