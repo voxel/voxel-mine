@@ -42,18 +42,15 @@ Mine::bindEvents = ->
       this.emit 'break', target.voxel
 
 Mine::drawDamage = (target) ->
-  a = {x:10, y:10}
-  b = {x:50, y:50}
-
   a = {x:0, y:0}
   b = {x:1, y:1}
 
   # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
   geometry = new this.game.THREE.Geometry()
-  geometry.vertices.push(new this.game.THREE.Vector3(a.x, a.y, 2))
-  geometry.vertices.push(new this.game.THREE.Vector3(b.x, a.y, 2))
-  geometry.vertices.push(new this.game.THREE.Vector3(b.x, b.y, 2))
-  geometry.vertices.push(new this.game.THREE.Vector3(a.x, b.y, 2))
+  geometry.vertices.push(new this.game.THREE.Vector3(a.x, a.y, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(b.x, a.y, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(b.x, b.y, 0))
+  geometry.vertices.push(new this.game.THREE.Vector3(a.x, b.y, 0))
 
   geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
   geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
@@ -70,7 +67,7 @@ Mine::drawDamage = (target) ->
   obj = new game.THREE.Object3D()
 
   obj.add(mesh)
-  obj.position.set(target.voxel[0] + 0.5, target.voxel[1] + 0.5, target.voxel[2] + 0.5) # TODO: side
+  obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1) # TODO: side
   
   cube = game.addItem({mesh: obj, size: 1})
 

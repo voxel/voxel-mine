@@ -49,14 +49,6 @@
   Mine.prototype.drawDamage = function(target) {
     var a, b, cube, geometry, material, mesh, obj;
     a = {
-      x: 10,
-      y: 10
-    };
-    b = {
-      x: 50,
-      y: 50
-    };
-    a = {
       x: 0,
       y: 0
     };
@@ -65,10 +57,10 @@
       y: 1
     };
     geometry = new this.game.THREE.Geometry();
-    geometry.vertices.push(new this.game.THREE.Vector3(a.x, a.y, 2));
-    geometry.vertices.push(new this.game.THREE.Vector3(b.x, a.y, 2));
-    geometry.vertices.push(new this.game.THREE.Vector3(b.x, b.y, 2));
-    geometry.vertices.push(new this.game.THREE.Vector3(a.x, b.y, 2));
+    geometry.vertices.push(new this.game.THREE.Vector3(a.x, a.y, 0));
+    geometry.vertices.push(new this.game.THREE.Vector3(b.x, a.y, 0));
+    geometry.vertices.push(new this.game.THREE.Vector3(b.x, b.y, 0));
+    geometry.vertices.push(new this.game.THREE.Vector3(a.x, b.y, 0));
     geometry.faces.push(new this.game.THREE.Face3(0, 1, 2));
     geometry.faces.push(new this.game.THREE.Face3(0, 2, 3));
     geometry.computeCentroids();
@@ -80,7 +72,7 @@
     mesh = new this.game.THREE.Mesh(geometry, material);
     obj = new game.THREE.Object3D();
     obj.add(mesh);
-    obj.position.set(target.voxel[0] + 0.5, target.voxel[1] + 0.5, target.voxel[2] + 0.5);
+    obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1);
     return cube = game.addItem({
       mesh: obj,
       size: 1
