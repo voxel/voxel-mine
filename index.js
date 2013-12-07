@@ -26,6 +26,7 @@
     this.instaMine = opts.instaMine;
     this.progress = 0;
     this.reach = opts.reach;
+    this.overlay = null;
     this.bindEvents();
     return this;
   };
@@ -48,18 +49,19 @@
         return;
       }
       console.log("start mining", target);
-      return _this.drawDamage(target);
+      return _this.createOverlay(target);
     });
     return this.reach.on('stop mining', function(target) {
       if (!target) {
         return;
       }
-      return console.log("stop mining", target);
+      console.log("stop mining", target);
+      return _this.destroyOverlay();
     });
   };
 
-  Mine.prototype.drawDamage = function(target) {
-    var a, b, cube, geometry, material, mesh, obj;
+  Mine.prototype.createOverlay = function(target) {
+    var a, b, geometry, material, mesh, obj;
     a = {
       x: 0,
       y: 0
@@ -84,13 +86,23 @@
     material.depthWrite = false;
     material.depthTest = false;
     mesh = new this.game.THREE.Mesh(geometry, material);
-    obj = new game.THREE.Object3D();
+    obj = new this.game.THREE.Object3D();
     obj.add(mesh);
     obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1);
-    return cube = game.addItem({
+    this.overlay = this.game.addItem({
       mesh: obj,
       size: 1
     });
+    return this.overlay;
+  };
+
+  Mine.prototype.destroyOverlay = function() {
+    if (!this.overlay) {
+      return;
+    }
+    console.log("removing", this.overlay);
+    this.game.removeItem(this.overlay);
+    return this.overlay = null;
   };
 
   inherits(Mine, EventEmitter);

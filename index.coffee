@@ -20,6 +20,7 @@ Mine = (game, opts) ->
   this.progress = 0
   this.reach = opts.reach
 
+  this.overlay = null
   this.bindEvents()
 
   this
@@ -44,16 +45,17 @@ Mine::bindEvents = ->
       return
 
     console.log "start mining", target
-    this.drawDamage(target)
+    this.createOverlay(target)
 
   this.reach.on 'stop mining', (target) =>
     if not target
       return
 
     console.log "stop mining", target
+    this.destroyOverlay()
 
 
-Mine::drawDamage = (target) ->
+Mine::createOverlay = (target) ->
   a = {x:0, y:0}
   b = {x:1, y:1}
 
@@ -77,11 +79,21 @@ Mine::drawDamage = (target) ->
   material.depthWrite = false
   material.depthTest = false
   mesh = new this.game.THREE.Mesh(geometry, material)
-  obj = new game.THREE.Object3D()
+  obj = new this.game.THREE.Object3D()
 
   obj.add(mesh)
   obj.position.set(target.voxel[0], target.voxel[1], target.voxel[2] + 1) # TODO: side
-  
-  cube = game.addItem({mesh: obj, size: 1})
+
+  this.overlay = this.game.addItem({mesh: obj, size: 1})
+
+  return this.overlay
+
+Mine::destroyOverlay = () ->
+  if not this.overlay
+    return
+
+  console.log("removing",this.overlay)
+  this.game.removeItem(this.overlay)
+  this.overlay = null
 
 inherits Mine, EventEmitter
