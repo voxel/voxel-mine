@@ -51,6 +51,7 @@
         return;
       }
       _this.progress += 1;
+      _this.overlayTexture(_this.opts.progressTexture);
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.progress = 0;
         return _this.emit('break', target.voxel);
@@ -181,8 +182,6 @@
       ]
     ];
     material = new this.game.THREE.MeshLambertMaterial();
-    material.map = this.opts.progressTexture;
-    this.opts.applyTextureParams(material.map);
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
     material.depthWrite = false;
@@ -196,6 +195,15 @@
       size: 1
     });
     return this.overlay;
+  };
+
+  Mine.prototype.overlayTexture = function(texture) {
+    if (!this.overlay) {
+      return;
+    }
+    this.opts.applyTextureParams(texture);
+    this.overlay.mesh.children[0].material.map = texture;
+    return this.overlay.mesh.children[0].material.needsUpdate = true;
   };
 
   Mine.prototype.destroyOverlay = function() {

@@ -40,6 +40,8 @@ Mine::bindEvents = ->
 
     this.progress += 1
 
+    this.overlayTexture(this.opts.progressTexture)
+
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
       # TODO: reset this.progress if mouse released
@@ -142,14 +144,7 @@ Mine::createOverlay = (target) ->
       ]
     ]
 
-
-
-
-  material = new this.game.THREE.MeshLambertMaterial() # TODO: destroy_stage_N
-  material.map = this.opts.progressTexture
-
-  this.opts.applyTextureParams(material.map)
-
+  material = new this.game.THREE.MeshLambertMaterial()
   material.side = this.game.THREE.FrontSide
   material.transparent = true
   material.depthWrite = false
@@ -165,6 +160,15 @@ Mine::createOverlay = (target) ->
   this.overlay = this.game.addItem({mesh: obj, size: 1})
 
   return this.overlay
+
+Mine::overlayTexture = (texture) ->
+  if not this.overlay
+    return
+
+  # TODO: destroy_stage_N
+  this.opts.applyTextureParams(texture)
+  this.overlay.mesh.children[0].material.map = texture
+  this.overlay.mesh.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
   if not this.overlay
