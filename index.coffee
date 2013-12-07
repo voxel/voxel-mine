@@ -11,7 +11,13 @@ Mine = (game, opts) ->
   opts = opts ? {}
   opts.defaultHardness ?= 3
   opts.instaMine ?= false
-  opts.progressTexture ?= this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png")
+  opts.progressTextures ?= [
+    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_3.png"),
+    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png"),
+    this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_7.png"),
+    ]
+
+
   opts.applyTextureParams ?= (texture) =>
     texture.magFilter = this.game.THREE.NearestFilter
     texture.minFilter = this.game.THREE.LinearMipMapLinearFilter
@@ -40,7 +46,7 @@ Mine::bindEvents = ->
 
     this.progress += 1
 
-    this.overlayTexture(this.opts.progressTexture)
+    this.updateForStage()
 
     # TODO: variable hardness based on block type
     if this.instaMine || this.progress > this.opts.defaultHardness
@@ -145,6 +151,10 @@ Mine::createOverlay = (target) ->
     ]
 
   material = new this.game.THREE.MeshLambertMaterial()
+
+  material.map = this.opts.progressTextures[0]
+  this.opts.applyTextureParams(material.map)
+
   material.side = this.game.THREE.FrontSide
   material.transparent = true
   material.depthWrite = false
@@ -161,7 +171,14 @@ Mine::createOverlay = (target) ->
 
   return this.overlay
 
-Mine::overlayTexture = (texture) ->
+# Set overlay texture based on mining progress stage
+Mine::updateForStage = () ->
+  index = this.progress % this.opts.progressTextures.length  # TODO: scale
+  texture = this.opts.progressTextures[index]
+
+  this.setOverlayTexture(texture)
+
+Mine::setOverlayTexture = (texture) ->
   if not this.overlay
     return
 

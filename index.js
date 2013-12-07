@@ -20,8 +20,8 @@
     if (opts.instaMine == null) {
       opts.instaMine = false;
     }
-    if (opts.progressTexture == null) {
-      opts.progressTexture = this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png");
+    if (opts.progressTextures == null) {
+      opts.progressTextures = [this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_3.png"), this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_5.png"), this.game.THREE.ImageUtils.loadTexture("ProgrammerArt/textures/blocks/destroy_stage_7.png")];
     }
     if (opts.applyTextureParams == null) {
       opts.applyTextureParams = function(texture) {
@@ -51,7 +51,7 @@
         return;
       }
       _this.progress += 1;
-      _this.overlayTexture(_this.opts.progressTexture);
+      _this.updateForStage();
       if (_this.instaMine || _this.progress > _this.opts.defaultHardness) {
         _this.progress = 0;
         return _this.emit('break', target.voxel);
@@ -182,6 +182,8 @@
       ]
     ];
     material = new this.game.THREE.MeshLambertMaterial();
+    material.map = this.opts.progressTextures[0];
+    this.opts.applyTextureParams(material.map);
     material.side = this.game.THREE.FrontSide;
     material.transparent = true;
     material.depthWrite = false;
@@ -197,7 +199,14 @@
     return this.overlay;
   };
 
-  Mine.prototype.overlayTexture = function(texture) {
+  Mine.prototype.updateForStage = function() {
+    var index, texture;
+    index = this.progress % this.opts.progressTextures.length;
+    texture = this.opts.progressTextures[index];
+    return this.setOverlayTexture(texture);
+  };
+
+  Mine.prototype.setOverlayTexture = function(texture) {
     if (!this.overlay) {
       return;
     }
