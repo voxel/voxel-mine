@@ -163,14 +163,14 @@ Mine::createOverlay = (target) ->
   material.polygonOffsetFactor = -1.0
   material.polygonOffsetUnits = -1.0
   mesh = new this.game.THREE.Mesh(geometry, material)
-  obj = new this.game.THREE.Object3D()
+  this.overlay = new this.game.THREE.Object3D()
 
-  obj.add(mesh)
-  obj.position.set(target.voxel[0] + offset[0], 
+  this.overlay.add(mesh)
+  this.overlay.position.set(target.voxel[0] + offset[0], 
                    target.voxel[1] + offset[1],
                    target.voxel[2] + offset[2])
 
-  this.overlay = this.game.addItem({mesh: obj, size: 1})
+  this.game.scene.add(this.overlay)
 
   return this.overlay
 
@@ -190,14 +190,14 @@ Mine::setOverlayTexture = (texture) ->
 
   # TODO: destroy_stage_N
   this.opts.applyTextureParams(texture)
-  this.overlay.mesh.children[0].material.map = texture
-  this.overlay.mesh.children[0].material.needsUpdate = true
+  this.overlay.children[0].material.map = texture
+  this.overlay.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
   if not this.overlay or not this.texturesEnabled
     return
 
-  this.game.removeItem(this.overlay)
+  this.game.scene.remove(this.overlay)
   this.overlay = null
 
 inherits Mine, EventEmitter

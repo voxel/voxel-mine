@@ -99,7 +99,7 @@
   };
 
   Mine.prototype.createOverlay = function(target) {
-    var geometry, material, mesh, obj, offset;
+    var geometry, material, mesh, offset;
     if (this.instaMine || !this.texturesEnabled) {
       return;
     }
@@ -192,13 +192,10 @@
     material.polygonOffsetFactor = -1.0;
     material.polygonOffsetUnits = -1.0;
     mesh = new this.game.THREE.Mesh(geometry, material);
-    obj = new this.game.THREE.Object3D();
-    obj.add(mesh);
-    obj.position.set(target.voxel[0] + offset[0], target.voxel[1] + offset[1], target.voxel[2] + offset[2]);
-    this.overlay = this.game.addItem({
-      mesh: obj,
-      size: 1
-    });
+    this.overlay = new this.game.THREE.Object3D();
+    this.overlay.add(mesh);
+    this.overlay.position.set(target.voxel[0] + offset[0], target.voxel[1] + offset[1], target.voxel[2] + offset[2]);
+    this.game.scene.add(this.overlay);
     return this.overlay;
   };
 
@@ -217,15 +214,15 @@
       return;
     }
     this.opts.applyTextureParams(texture);
-    this.overlay.mesh.children[0].material.map = texture;
-    return this.overlay.mesh.children[0].material.needsUpdate = true;
+    this.overlay.children[0].material.map = texture;
+    return this.overlay.children[0].material.needsUpdate = true;
   };
 
   Mine.prototype.destroyOverlay = function() {
     if (!this.overlay || !this.texturesEnabled) {
       return;
     }
-    this.game.removeItem(this.overlay);
+    this.game.scene.remove(this.overlay);
     return this.overlay = null;
   };
 
