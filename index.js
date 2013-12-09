@@ -17,6 +17,9 @@
     if (opts.defaultHardness == null) {
       opts.defaultHardness = 9;
     }
+    if (opts.hardness == null) {
+      opts.hardness = {};
+    }
     if (opts.instaMine == null) {
       opts.instaMine = false;
     }
@@ -66,22 +69,27 @@
   };
 
   Mine.prototype.getHardness = function(target) {
-    return this.opts.defaultHardness;
+    var hardness, materialIndex, _ref;
+    materialIndex = this.game.getBlock(target.voxel);
+    hardness = (_ref = this.opts.hardness[materialIndex]) != null ? _ref : this.opts.defaultHardness;
+    return hardness;
   };
 
   Mine.prototype.bindEvents = function() {
     var _this = this;
     this.reach.on('mining', function(target) {
+      var hardness;
       if (!target) {
         console.log("no block mined");
         return;
       }
       _this.progress += 1;
-      if (_this.instaMine || _this.progress > _this.getHardness(target)) {
+      hardness = _this.getHardness(target);
+      if (_this.instaMine || _this.progress > hardness) {
         _this.progress = 0;
         _this.emit('break', target.voxel);
       }
-      return _this.updateForStage();
+      return _this.updateForStage(_this.progress, hardness);
     });
     this.reach.on('start mining', function(target) {
       if (!target) {
@@ -199,12 +207,12 @@
     return this.overlay;
   };
 
-  Mine.prototype.updateForStage = function() {
+  Mine.prototype.updateForStage = function(progress, hardness) {
     var index, texture;
     if (!this.texturesEnabled) {
       return;
     }
-    index = Math.floor((this.progress / this.getHardness()) * (this.progressTextures.length - 1));
+    index = Math.floor((progress / hardness) * (this.progressTextures.length - 1));
     texture = this.progressTextures[index];
     return this.setOverlayTexture(texture);
   };

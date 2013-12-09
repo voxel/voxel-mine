@@ -10,6 +10,7 @@ Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
   opts.defaultHardness ?= 9
+  opts.hardness ?= {}
   opts.instaMine ?= false
   opts.progressTexturesBase ?= undefined
   opts.progressTexturesExt ?= ".png"
@@ -48,8 +49,10 @@ Mine::setupTextures = ->
     this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
 
 Mine::getHardness = (target) ->
-  # TODO: variable hardness based on block type
-  return this.opts.defaultHardness
+  # variable hardness based on block type
+  materialIndex = this.game.getBlock(target.voxel)
+  hardness = this.opts.hardness[materialIndex] ? this.opts.defaultHardness
+  return hardness
 
 Mine::bindEvents = ->
   this.reach.on 'mining', (target) =>
@@ -59,11 +62,12 @@ Mine::bindEvents = ->
 
     this.progress += 1
 
-    if this.instaMine || this.progress > this.getHardness(target)
+    hardness = this.getHardness(target)
+    if this.instaMine || this.progress > hardness
       this.progress = 0
       this.emit 'break', target.voxel
 
-    this.updateForStage()
+    this.updateForStage(this.progress, hardness)
 
   this.reach.on 'start mining', (target) =>
     if not target
@@ -175,11 +179,11 @@ Mine::createOverlay = (target) ->
   return this.overlay
 
 # Set overlay texture based on mining progress stage
-Mine::updateForStage = () ->
+Mine::updateForStage = (progress, hardness) ->
   if not this.texturesEnabled
     return
 
-  index = Math.floor((this.progress / this.getHardness()) * (this.progressTextures.length - 1))
+  index = Math.floor((progress / hardness) * (this.progressTextures.length - 1))
   texture = this.progressTextures[index]
 
   this.setOverlayTexture(texture)
