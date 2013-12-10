@@ -18,7 +18,7 @@
       opts.defaultHardness = 9;
     }
     if (opts.hardness == null) {
-      opts.hardness = {};
+      opts.hardness = [];
     }
     if (opts.instaMine == null) {
       opts.instaMine = false;
@@ -71,7 +71,7 @@
   Mine.prototype.getHardness = function(target) {
     var hardness, materialIndex, _ref;
     materialIndex = this.game.getBlock(target.voxel);
-    hardness = (_ref = this.opts.hardness[materialIndex]) != null ? _ref : this.opts.defaultHardness;
+    hardness = (_ref = this.opts.hardness[materialIndex - 1]) != null ? _ref : this.opts.defaultHardness;
     return hardness;
   };
 

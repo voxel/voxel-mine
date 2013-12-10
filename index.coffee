@@ -10,7 +10,7 @@ Mine = (game, opts) ->
   this.game = game
   opts = opts ? {}
   opts.defaultHardness ?= 9
-  opts.hardness ?= {}
+  opts.hardness ?= []
   opts.instaMine ?= false
   opts.progressTexturesBase ?= undefined
   opts.progressTexturesExt ?= ".png"
@@ -51,7 +51,7 @@ Mine::setupTextures = ->
 Mine::getHardness = (target) ->
   # variable hardness based on block type
   materialIndex = this.game.getBlock(target.voxel)
-  hardness = this.opts.hardness[materialIndex] ? this.opts.defaultHardness
+  hardness = this.opts.hardness[materialIndex - 1] ? this.opts.defaultHardness
   return hardness
 
 Mine::bindEvents = ->
