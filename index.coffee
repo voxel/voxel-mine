@@ -34,9 +34,43 @@ Mine = (game, opts) ->
   this.texturesEnabled = this.opts.progressTexturesBase?
   this.overlay = null
   this.setupTextures()
-  this.bindEvents()
+  this.enable()
 
   this
+
+Mine::enable = ->
+  this.reach.on 'mining', this.onMining = (target) =>
+    if not target
+      console.log("no block mined")
+      return
+
+    this.progress += 1
+
+    hardness = this.getHardness(target)
+    if this.instaMine || this.progress > hardness
+      this.progress = 0
+      this.emit 'break', target.voxel
+
+    this.updateForStage(this.progress, hardness)
+
+  this.reach.on 'start mining', this.onStartMining = (target) =>
+    if not target
+      return
+
+    this.createOverlay(target)
+
+  this.reach.on 'stop mining', this.onStopMining = (target) =>
+    if not target
+      return
+
+    # Reset this.progress if mouse released
+    this.destroyOverlay()
+    this.progress = 0
+
+Mine::disable = ->
+  this.reach.removeListener 'mining', this.onMining
+  this.reach.removeListener 'start mining', this.onStartMining
+  this.reach.removeListener 'stop mining', this.onStopMining
 
 Mine::setupTextures = ->
   if not this.texturesEnabled
@@ -53,36 +87,6 @@ Mine::getHardness = (target) ->
   materialIndex = this.game.getBlock(target.voxel)
   hardness = this.opts.hardness[materialIndex - 1] ? this.opts.defaultHardness
   return hardness
-
-Mine::bindEvents = ->
-  this.reach.on 'mining', (target) =>
-    if not target
-      console.log("no block mined")
-      return
-
-    this.progress += 1
-
-    hardness = this.getHardness(target)
-    if this.instaMine || this.progress > hardness
-      this.progress = 0
-      this.emit 'break', target.voxel
-
-    this.updateForStage(this.progress, hardness)
-
-  this.reach.on 'start mining', (target) =>
-    if not target
-      return
-
-    this.createOverlay(target)
-
-  this.reach.on 'stop mining', (target) =>
-    if not target
-      return
-
-    # Reset this.progress if mouse released
-    this.destroyOverlay()
-    this.progress = 0
-
 
 Mine::createOverlay = (target) ->
   if this.instaMine or not this.texturesEnabled

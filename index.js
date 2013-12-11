@@ -50,8 +50,45 @@
     this.texturesEnabled = this.opts.progressTexturesBase != null;
     this.overlay = null;
     this.setupTextures();
-    this.bindEvents();
+    this.enable();
     return this;
+  };
+
+  Mine.prototype.enable = function() {
+    var _this = this;
+    this.reach.on('mining', this.onMining = function(target) {
+      var hardness;
+      if (!target) {
+        console.log("no block mined");
+        return;
+      }
+      _this.progress += 1;
+      hardness = _this.getHardness(target);
+      if (_this.instaMine || _this.progress > hardness) {
+        _this.progress = 0;
+        _this.emit('break', target.voxel);
+      }
+      return _this.updateForStage(_this.progress, hardness);
+    });
+    this.reach.on('start mining', this.onStartMining = function(target) {
+      if (!target) {
+        return;
+      }
+      return _this.createOverlay(target);
+    });
+    return this.reach.on('stop mining', this.onStopMining = function(target) {
+      if (!target) {
+        return;
+      }
+      _this.destroyOverlay();
+      return _this.progress = 0;
+    });
+  };
+
+  Mine.prototype.disable = function() {
+    this.reach.removeListener('mining', this.onMining);
+    this.reach.removeListener('start mining', this.onStartMining);
+    return this.reach.removeListener('stop mining', this.onStopMining);
   };
 
   Mine.prototype.setupTextures = function() {
@@ -73,37 +110,6 @@
     materialIndex = this.game.getBlock(target.voxel);
     hardness = (_ref = this.opts.hardness[materialIndex - 1]) != null ? _ref : this.opts.defaultHardness;
     return hardness;
-  };
-
-  Mine.prototype.bindEvents = function() {
-    var _this = this;
-    this.reach.on('mining', function(target) {
-      var hardness;
-      if (!target) {
-        console.log("no block mined");
-        return;
-      }
-      _this.progress += 1;
-      hardness = _this.getHardness(target);
-      if (_this.instaMine || _this.progress > hardness) {
-        _this.progress = 0;
-        _this.emit('break', target.voxel);
-      }
-      return _this.updateForStage(_this.progress, hardness);
-    });
-    this.reach.on('start mining', function(target) {
-      if (!target) {
-        return;
-      }
-      return _this.createOverlay(target);
-    });
-    return this.reach.on('stop mining', function(target) {
-      if (!target) {
-        return;
-      }
-      _this.destroyOverlay();
-      return _this.progress = 0;
-    });
   };
 
   Mine.prototype.createOverlay = function(target) {
