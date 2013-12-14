@@ -22,7 +22,7 @@ or with [voxel-plugins](https://github.com/deathcap/voxel-plugins):
 
     plugins.load('mine', opts);
 
-see source for supported options
+see source for supported/required options
 
 Requires [voxel-reach](https://github.com/deathcap/voxel-reach)
 

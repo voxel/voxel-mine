@@ -49,7 +49,7 @@ Mine::enable = ->
     hardness = this.getHardness(target)
     if this.instaMine || this.progress > hardness
       this.progress = 0
-      this.emit 'break', target.voxel
+      this.emit 'break', target
 
     this.updateForStage(this.progress, hardness)
 

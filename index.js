@@ -66,7 +66,7 @@
       hardness = _this.getHardness(target);
       if (_this.instaMine || _this.progress > hardness) {
         _this.progress = 0;
-        _this.emit('break', target.voxel);
+        _this.emit('break', target);
       }
       return _this.updateForStage(_this.progress, hardness);
     });
