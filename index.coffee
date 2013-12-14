@@ -196,7 +196,6 @@ Mine::setOverlayTexture = (texture) ->
   if not this.overlay or not this.texturesEnabled
     return
 
-  # TODO: destroy_stage_N
   this.opts.applyTextureParams(texture)
   this.overlay.children[0].material.map = texture
   this.overlay.children[0].material.needsUpdate = true
