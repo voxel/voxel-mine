@@ -26,9 +26,6 @@
       if (opts.instaMine == null) {
         opts.instaMine = false;
       }
-      if (opts.progressTexturesDir == null) {
-        opts.progressTexturesDir = game.materials.texturePath;
-      }
       if (opts.progressTexturesPrefix == null) {
         opts.progressTexturesPrefix = void 0;
       }
@@ -101,14 +98,14 @@
   };
 
   Mine.prototype.setupTextures = function() {
-    var i, path, _i, _ref, _results;
+    var i, path, _i, _ref, _ref1, _results;
     if (!this.texturesEnabled) {
       return;
     }
     this.progressTextures = [];
     _results = [];
     for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      path = this.opts.progressTexturesDir + this.opts.progressTexturesPrefix + i + this.opts.progressTexturesExt;
+      path = ((_ref1 = this.game.materials.texturePath) != null ? _ref1 : '') + this.opts.progressTexturesPrefix + i + this.opts.progressTexturesExt;
       _results.push(this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path)));
     }
     return _results;

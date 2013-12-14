@@ -12,10 +12,9 @@ class Mine extends EventEmitter
     opts.hardness ?= []         # material type to required time to mine
     opts.defaultHardness ?= 9   # if not specified for this material in opts.hardness
     opts.instaMine ?= false     # instantly mine?
-    opts.progressTexturesDir ?= game.materials.texturePath     # directory to find damage overlay textures
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
     opts.progressTexturesExt ?= ".png"       # suffix for path of damage texture overlay
-    opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, path = progressTextures{Dir+Prefix+#+Ext}
+    opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, path = game.materials.texturePath + progressTextures{Prefix+#+Ext}
 
     opts.applyTextureParams ?= (texture) =>
       texture.magFilter = @game.THREE.NearestFilter
@@ -78,7 +77,7 @@ Mine::setupTextures = ->
   @progressTextures = []
 
   for i in [0..@opts.progressTexturesCount]
-    path = @opts.progressTexturesDir + @opts.progressTexturesPrefix + i + @opts.progressTexturesExt
+    path = (@game.materials.texturePath ? '') + @opts.progressTexturesPrefix + i + @opts.progressTexturesExt
     @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
 
 Mine::getHardness = (target) ->
