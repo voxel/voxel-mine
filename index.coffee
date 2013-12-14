@@ -9,12 +9,12 @@ class Mine extends EventEmitter
   constructor: (game, opts) ->
     @game = game
     opts = opts ? {}
-    opts.defaultHardness ?= 9
-    opts.hardness ?= []
-    opts.instaMine ?= false
-    opts.progressTexturesBase ?= undefined
-    opts.progressTexturesExt ?= ".png"
-    opts.progressTexturesCount ?= 10
+    opts.hardness ?= []         # material type to required time to mine
+    opts.defaultHardness ?= 9   # if not specified for this material in opts.hardness
+    opts.instaMine ?= false     # instantly mine?
+    opts.progressTexturesBase ?= undefined  # prefix for filename path of damage texture overlay
+    opts.progressTexturesExt ?= ".png"      # suffix for path of damage texture overlay
+    opts.progressTexturesCount ?= 10        # number of damage textures, cycles 0 to N-1, path = progressTexturesBase + N + progressTexturesExt
 
     opts.applyTextureParams ?= (texture) =>
       texture.magFilter = @game.THREE.NearestFilter
@@ -22,7 +22,7 @@ class Mine extends EventEmitter
       texture.wrapT = @game.THREE.RepeatWrapping
       texture.wrapS = @game.THREE.RepeatWrapping
 
-    if !opts.reach?
+    if !opts.reach?             # required voxel-reach instance
       throw "voxel-mine requires 'reach' option set to voxel-reach instance"
 
     @opts = opts

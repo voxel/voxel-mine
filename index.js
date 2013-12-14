@@ -17,11 +17,11 @@
       var _this = this;
       this.game = game;
       opts = opts != null ? opts : {};
-      if (opts.defaultHardness == null) {
-        opts.defaultHardness = 9;
-      }
       if (opts.hardness == null) {
         opts.hardness = [];
+      }
+      if (opts.defaultHardness == null) {
+        opts.defaultHardness = 9;
       }
       if (opts.instaMine == null) {
         opts.instaMine = false;
