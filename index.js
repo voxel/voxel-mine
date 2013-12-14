@@ -30,7 +30,7 @@
       opts.progressTexturesExt = ".png";
     }
     if (opts.progressTexturesCount == null) {
-      opts.progressTexturesCount = 9;
+      opts.progressTexturesCount = 10;
     }
     if (opts.applyTextureParams == null) {
       opts.applyTextureParams = function(texture) {

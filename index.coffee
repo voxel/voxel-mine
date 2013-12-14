@@ -14,7 +14,7 @@ Mine = (game, opts) ->
   opts.instaMine ?= false
   opts.progressTexturesBase ?= undefined
   opts.progressTexturesExt ?= ".png"
-  opts.progressTexturesCount ?= 9
+  opts.progressTexturesCount ?= 10
 
   opts.applyTextureParams ?= (texture) =>
     texture.magFilter = this.game.THREE.NearestFilter
