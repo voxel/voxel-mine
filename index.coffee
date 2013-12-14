@@ -1,42 +1,40 @@
 # vim: set shiftwidth=2 tabstop=2 softtabstop=2 expandtab:
 
-inherits = require 'inherits'
 EventEmitter = (require 'events').EventEmitter
 
 module.exports = (game, opts) ->
   return new Mine(game, opts)
 
-Mine = (game, opts) ->
-  @game = game
-  opts = opts ? {}
-  opts.defaultHardness ?= 9
-  opts.hardness ?= []
-  opts.instaMine ?= false
-  opts.progressTexturesBase ?= undefined
-  opts.progressTexturesExt ?= ".png"
-  opts.progressTexturesCount ?= 10
+class Mine extends EventEmitter
+  constructor: (game, opts) ->
+    @game = game
+    opts = opts ? {}
+    opts.defaultHardness ?= 9
+    opts.hardness ?= []
+    opts.instaMine ?= false
+    opts.progressTexturesBase ?= undefined
+    opts.progressTexturesExt ?= ".png"
+    opts.progressTexturesCount ?= 10
 
-  opts.applyTextureParams ?= (texture) =>
-    texture.magFilter = @game.THREE.NearestFilter
-    texture.minFilter = @game.THREE.LinearMipMapLinearFilter
-    texture.wrapT = @game.THREE.RepeatWrapping
-    texture.wrapS = @game.THREE.RepeatWrapping
+    opts.applyTextureParams ?= (texture) =>
+      texture.magFilter = @game.THREE.NearestFilter
+      texture.minFilter = @game.THREE.LinearMipMapLinearFilter
+      texture.wrapT = @game.THREE.RepeatWrapping
+      texture.wrapS = @game.THREE.RepeatWrapping
 
-  if !opts.reach?
-    throw "voxel-mine requires 'reach' option set to voxel-reach instance"
+    if !opts.reach?
+      throw "voxel-mine requires 'reach' option set to voxel-reach instance"
 
-  @opts = opts
+    @opts = opts
 
-  @instaMine = opts.instaMine
-  @progress = 0
-  @reach = opts.reach
+    @instaMine = opts.instaMine
+    @progress = 0
+    @reach = opts.reach
 
-  @texturesEnabled = @opts.progressTexturesBase?
-  @overlay = null
-  @setupTextures()
-  @enable()
-
-  this
+    @texturesEnabled = @opts.progressTexturesBase?
+    @overlay = null
+    @setupTextures()
+    @enable()
 
 Mine::enable = ->
   @reach.on 'mining', @onMining = (target) =>
@@ -206,5 +204,3 @@ Mine::destroyOverlay = () ->
 
   @game.scene.remove(@overlay)
   @overlay = null
-
-inherits Mine, EventEmitter
