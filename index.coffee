@@ -7,7 +7,7 @@ module.exports = (game, opts) ->
   return new Mine(game, opts)
 
 Mine = (game, opts) ->
-  this.game = game
+  @game = game
   opts = opts ? {}
   opts.defaultHardness ?= 9
   opts.hardness ?= []
@@ -17,128 +17,128 @@ Mine = (game, opts) ->
   opts.progressTexturesCount ?= 10
 
   opts.applyTextureParams ?= (texture) =>
-    texture.magFilter = this.game.THREE.NearestFilter
-    texture.minFilter = this.game.THREE.LinearMipMapLinearFilter
-    texture.wrapT = this.game.THREE.RepeatWrapping
-    texture.wrapS = this.game.THREE.RepeatWrapping
+    texture.magFilter = @game.THREE.NearestFilter
+    texture.minFilter = @game.THREE.LinearMipMapLinearFilter
+    texture.wrapT = @game.THREE.RepeatWrapping
+    texture.wrapS = @game.THREE.RepeatWrapping
 
   if !opts.reach?
     throw "voxel-mine requires 'reach' option set to voxel-reach instance"
 
-  this.opts = opts
+  @opts = opts
 
-  this.instaMine = opts.instaMine
-  this.progress = 0
-  this.reach = opts.reach
+  @instaMine = opts.instaMine
+  @progress = 0
+  @reach = opts.reach
 
-  this.texturesEnabled = this.opts.progressTexturesBase?
-  this.overlay = null
-  this.setupTextures()
-  this.enable()
+  @texturesEnabled = @opts.progressTexturesBase?
+  @overlay = null
+  @setupTextures()
+  @enable()
 
   this
 
 Mine::enable = ->
-  this.reach.on 'mining', this.onMining = (target) =>
+  @reach.on 'mining', @onMining = (target) =>
     if not target
       console.log("no block mined")
       return
 
-    this.progress += 1
+    @progress += 1
 
-    hardness = this.getHardness(target)
-    if this.instaMine || this.progress > hardness
-      this.progress = 0
-      this.emit 'break', target
+    hardness = @getHardness(target)
+    if @instaMine || @progress > hardness
+      @progress = 0
+      @emit 'break', target
 
-    this.updateForStage(this.progress, hardness)
+    @updateForStage(@progress, hardness)
 
-  this.reach.on 'start mining', this.onStartMining = (target) =>
+  @reach.on 'start mining', @onStartMining = (target) =>
     if not target
       return
 
-    this.createOverlay(target)
+    @createOverlay(target)
 
-  this.reach.on 'stop mining', this.onStopMining = (target) =>
+  @reach.on 'stop mining', @onStopMining = (target) =>
     if not target
       return
 
-    # Reset this.progress if mouse released
-    this.destroyOverlay()
-    this.progress = 0
+    # Reset @progress if mouse released
+    @destroyOverlay()
+    @progress = 0
 
 Mine::disable = ->
-  this.reach.removeListener 'mining', this.onMining
-  this.reach.removeListener 'start mining', this.onStartMining
-  this.reach.removeListener 'stop mining', this.onStopMining
+  @reach.removeListener 'mining', @onMining
+  @reach.removeListener 'start mining', @onStartMining
+  @reach.removeListener 'stop mining', @onStopMining
 
 Mine::setupTextures = ->
-  if not this.texturesEnabled
+  if not @texturesEnabled
     return
 
-  this.progressTextures = []
+  @progressTextures = []
 
-  for i in [0..this.opts.progressTexturesCount]
-    path = this.opts.progressTexturesBase + i + this.opts.progressTexturesExt
-    this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
+  for i in [0..@opts.progressTexturesCount]
+    path = @opts.progressTexturesBase + i + @opts.progressTexturesExt
+    @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
 
 Mine::getHardness = (target) ->
   # variable hardness based on block type
-  materialIndex = this.game.getBlock(target.voxel)
-  hardness = this.opts.hardness[materialIndex - 1] ? this.opts.defaultHardness
+  materialIndex = @game.getBlock(target.voxel)
+  hardness = @opts.hardness[materialIndex - 1] ? @opts.defaultHardness
   return hardness
 
 Mine::createOverlay = (target) ->
-  if this.instaMine or not this.texturesEnabled
+  if @instaMine or not @texturesEnabled
     return
 
-  this.destroyOverlay()
+  @destroyOverlay()
 
-  geometry = new this.game.THREE.Geometry()
+  geometry = new @game.THREE.Geometry()
   # TODO: actually compute this
   if target.normal[2] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
     offset = [0, 0, 1]
   else if target.normal[1] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
     offset = [0, 1, 0]
   else if target.normal[0] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
     offset = [1, 0, 0]
   else if target.normal[0] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
     offset = [0, 0, 0]
   else if target.normal[1] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
     offset = [0, 0, 0]
   else if target.normal[2] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
     offset = [0, 0, 0]
   else
     console.log "unknown face", target.normal
     return
 
   # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
-  geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
-  geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
+  geometry.faces.push(new @game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
+  geometry.faces.push(new @game.THREE.Face3(0, 2, 3))
 
   geometry.computeCentroids()
   geometry.computeFaceNormals()
@@ -160,51 +160,51 @@ Mine::createOverlay = (target) ->
       ]
     ]
 
-  material = new this.game.THREE.MeshLambertMaterial()
+  material = new @game.THREE.MeshLambertMaterial()
 
-  material.map = this.progressTextures[0]
-  this.opts.applyTextureParams(material.map)
+  material.map = @progressTextures[0]
+  @opts.applyTextureParams(material.map)
 
-  material.side = this.game.THREE.FrontSide
+  material.side = @game.THREE.FrontSide
   material.transparent = true
   material.polygonOffset = true
   material.polygonOffsetFactor = -1.0
   material.polygonOffsetUnits = -1.0
-  mesh = new this.game.THREE.Mesh(geometry, material)
-  this.overlay = new this.game.THREE.Object3D()
+  mesh = new @game.THREE.Mesh(geometry, material)
+  @overlay = new @game.THREE.Object3D()
 
-  this.overlay.add(mesh)
-  this.overlay.position.set(target.voxel[0] + offset[0], 
+  @overlay.add(mesh)
+  @overlay.position.set(target.voxel[0] + offset[0], 
                    target.voxel[1] + offset[1],
                    target.voxel[2] + offset[2])
 
-  this.game.scene.add(this.overlay)
+  @game.scene.add(@overlay)
 
-  return this.overlay
+  return @overlay
 
 # Set overlay texture based on mining progress stage
 Mine::updateForStage = (progress, hardness) ->
-  if not this.texturesEnabled
+  if not @texturesEnabled
     return
 
-  index = Math.floor((progress / hardness) * (this.progressTextures.length - 1))
-  texture = this.progressTextures[index]
+  index = Math.floor((progress / hardness) * (@progressTextures.length - 1))
+  texture = @progressTextures[index]
 
-  this.setOverlayTexture(texture)
+  @setOverlayTexture(texture)
 
 Mine::setOverlayTexture = (texture) ->
-  if not this.overlay or not this.texturesEnabled
+  if not @overlay or not @texturesEnabled
     return
 
-  this.opts.applyTextureParams(texture)
-  this.overlay.children[0].material.map = texture
-  this.overlay.children[0].material.needsUpdate = true
+  @opts.applyTextureParams(texture)
+  @overlay.children[0].material.map = texture
+  @overlay.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
-  if not this.overlay or not this.texturesEnabled
+  if not @overlay or not @texturesEnabled
     return
 
-  this.game.scene.remove(this.overlay)
-  this.overlay = null
+  @game.scene.remove(@overlay)
+  @overlay = null
 
 inherits Mine, EventEmitter
