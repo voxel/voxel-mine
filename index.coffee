@@ -9,8 +9,7 @@ class Mine extends EventEmitter
   constructor: (game, opts) ->
     @game = game
     opts = opts ? {}
-    opts.hardness ?= []         # material type to required time to mine # TODO: replace with voxel-registry
-    opts.defaultHardness ?= 9   # if not specified for this material in opts.hardness
+    opts.timeToMine ?= (voxel) => 9         # callback to get how long it should take to completely mine this block
     opts.instaMine ?= false     # instantly mine?
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
     opts.progressTexturesExt ?= ".png"       # suffix for path of damage texture overlay
@@ -23,7 +22,6 @@ class Mine extends EventEmitter
       texture.wrapS = @game.THREE.RepeatWrapping
 
     @reach = opts.reach ? throw "voxel-mine requires 'reach' option set to voxel-reach instance"
-    @heldItem = opts.heldItem ? () ->    # optional callback; default to nothing held
 
     @opts = opts
 
@@ -43,7 +41,7 @@ Mine::enable = ->
 
     @progress += 1
 
-    hardness = @getHardness(target)
+    hardness = @opts.timeToMine(target)
     if @instaMine || @progress > hardness
       @progress = 0
       @emit 'break', target
@@ -78,14 +76,6 @@ Mine::setupTextures = ->
   for i in [0..@opts.progressTexturesCount]
     path = (@game.materials.texturePath ? '') + @opts.progressTexturesPrefix + i + @opts.progressTexturesExt
     @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
-
-Mine::getHardness = (target) ->
-  console.log "heldItem",@heldItem() # TODO: factor into hardness
-
-  # variable hardness based on block type
-  materialIndex = @game.getBlock(target.voxel)
-  hardness = @opts.hardness[materialIndex - 1] ? @opts.defaultHardness
-  return hardness
 
 Mine::createOverlay = (target) ->
   if @instaMine or not @texturesEnabled
