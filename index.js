@@ -14,7 +14,8 @@
     __extends(Mine, _super);
 
     function Mine(game, opts) {
-      var _this = this;
+      var _ref, _ref1,
+        _this = this;
       this.game = game;
       opts = opts != null ? opts : {};
       if (opts.hardness == null) {
@@ -43,13 +44,17 @@
           return texture.wrapS = _this.game.THREE.RepeatWrapping;
         };
       }
-      if (opts.reach == null) {
-        throw "voxel-mine requires 'reach' option set to voxel-reach instance";
-      }
+      this.reach = (function() {
+        if ((_ref = opts.reach) != null) {
+          return _ref;
+        } else {
+          throw "voxel-mine requires 'reach' option set to voxel-reach instance";
+        }
+      })();
+      this.heldItem = (_ref1 = opts.heldItem) != null ? _ref1 : function() {};
       this.opts = opts;
       this.instaMine = opts.instaMine;
       this.progress = 0;
-      this.reach = opts.reach;
       this.texturesEnabled = this.opts.progressTexturesPrefix != null;
       this.overlay = null;
       this.setupTextures();
@@ -113,6 +118,7 @@
 
   Mine.prototype.getHardness = function(target) {
     var hardness, materialIndex, _ref;
+    console.log("heldItem", this.heldItem());
     materialIndex = this.game.getBlock(target.voxel);
     hardness = (_ref = this.opts.hardness[materialIndex - 1]) != null ? _ref : this.opts.defaultHardness;
     return hardness;

@@ -9,7 +9,7 @@ class Mine extends EventEmitter
   constructor: (game, opts) ->
     @game = game
     opts = opts ? {}
-    opts.hardness ?= []         # material type to required time to mine
+    opts.hardness ?= []         # material type to required time to mine # TODO: replace with voxel-registry
     opts.defaultHardness ?= 9   # if not specified for this material in opts.hardness
     opts.instaMine ?= false     # instantly mine?
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
@@ -22,14 +22,13 @@ class Mine extends EventEmitter
       texture.wrapT = @game.THREE.RepeatWrapping
       texture.wrapS = @game.THREE.RepeatWrapping
 
-    if !opts.reach?             # required voxel-reach instance
-      throw "voxel-mine requires 'reach' option set to voxel-reach instance"
+    @reach = opts.reach ? throw "voxel-mine requires 'reach' option set to voxel-reach instance"
+    @heldItem = opts.heldItem ? () ->    # optional callback; default to nothing held
 
     @opts = opts
 
     @instaMine = opts.instaMine
     @progress = 0
-    @reach = opts.reach
 
     @texturesEnabled = @opts.progressTexturesPrefix?
     @overlay = null
@@ -81,6 +80,8 @@ Mine::setupTextures = ->
     @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
 
 Mine::getHardness = (target) ->
+  console.log "heldItem",@heldItem() # TODO: factor into hardness
+
   # variable hardness based on block type
   materialIndex = @game.getBlock(target.voxel)
   hardness = @opts.hardness[materialIndex - 1] ? @opts.defaultHardness
