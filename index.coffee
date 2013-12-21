@@ -44,6 +44,7 @@ Mine::enable = ->
     hardness = @opts.timeToMine(target)
     if @instaMine || @progress > hardness
       @progress = 0
+      @reach.emit 'stop mining', target
       @emit 'break', target
 
     @updateForStage(@progress, hardness)

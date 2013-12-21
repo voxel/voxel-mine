@@ -75,6 +75,7 @@
       hardness = _this.opts.timeToMine(target);
       if (_this.instaMine || _this.progress > hardness) {
         _this.progress = 0;
+        _this.reach.emit('stop mining', target);
         _this.emit('break', target);
       }
       return _this.updateForStage(_this.progress, hardness);
