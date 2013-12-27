@@ -11,7 +11,7 @@
   };
 
   module.exports.pluginInfo = {
-    loadAfter: ['reach']
+    loadAfter: ['voxel-reach']
   };
 
   Mine = (function(_super) {
@@ -49,7 +49,7 @@
       }
       this.reach = (function() {
         var _ref1;
-        if ((_ref = (_ref1 = game.plugins) != null ? _ref1.all.reach : void 0) != null) {
+        if ((_ref = (_ref1 = game.plugins) != null ? _ref1.get('voxel-reach') : void 0) != null) {
           return _ref;
         } else {
           throw 'voxel-mine requires "voxel-reach" plugin';
