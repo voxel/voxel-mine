@@ -5,6 +5,9 @@ EventEmitter = (require 'events').EventEmitter
 module.exports = (game, opts) ->
   return new Mine(game, opts)
 
+module.exports.pluginInfo =
+  loadAfter: ['reach']
+
 class Mine extends EventEmitter
   constructor: (game, opts) ->
     @game = game
@@ -21,7 +24,8 @@ class Mine extends EventEmitter
       texture.wrapT = @game.THREE.RepeatWrapping
       texture.wrapS = @game.THREE.RepeatWrapping
 
-    @reach = opts.reach ? throw "voxel-mine requires 'reach' option set to voxel-reach instance"
+    @reach = game.plugins?.all.reach ? throw 'voxel-mine requires "voxel-reach" plugin'
+    # TODO: voxel-registry plugin to get texture paths?
 
     @opts = opts
 

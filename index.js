@@ -10,6 +10,10 @@
     return new Mine(game, opts);
   };
 
+  module.exports.pluginInfo = {
+    loadAfter: ['reach']
+  };
+
   Mine = (function(_super) {
     __extends(Mine, _super);
 
@@ -44,10 +48,11 @@
         };
       }
       this.reach = (function() {
-        if ((_ref = opts.reach) != null) {
+        var _ref1;
+        if ((_ref = (_ref1 = game.plugins) != null ? _ref1.all.reach : void 0) != null) {
           return _ref;
         } else {
-          throw "voxel-mine requires 'reach' option set to voxel-reach instance";
+          throw 'voxel-mine requires "voxel-reach" plugin';
         }
       })();
       this.opts = opts;
