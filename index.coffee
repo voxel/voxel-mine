@@ -6,14 +6,18 @@ module.exports = (game, opts) ->
   return new Mine(game, opts)
 
 module.exports.pluginInfo =
-  loadAfter: ['voxel-reach']
+  loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar']
 
 class Mine extends EventEmitter
   constructor: (game, opts) ->
     @game = game
+    @registry = game.plugins?.get('voxel-registry')
+    @hotbar = game.plugins?.get('voxel-inventory-hotbar')
+    @reach = game.plugins?.get('voxel-reach') ? throw 'voxel-mine requires "voxel-reach" plugin'
     opts = opts ? {}
-    opts.timeToMine ?= (voxel) => 9         # callback to get how long it should take to completely mine this block
-    opts.instaMine ?= false     # instantly mine?
+    opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
+    opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block
+    # TODO: voxel-registry plugin to get texture paths?
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
     opts.progressTexturesExt ?= ".png"       # suffix for path of damage texture overlay
     opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, path = game.materials.texturePath + progressTextures{Prefix+#+Ext}
@@ -23,9 +27,6 @@ class Mine extends EventEmitter
       texture.minFilter = @game.THREE.LinearMipMapLinearFilter
       texture.wrapT = @game.THREE.RepeatWrapping
       texture.wrapS = @game.THREE.RepeatWrapping
-
-    @reach = game.plugins?.get('voxel-reach') ? throw 'voxel-mine requires "voxel-reach" plugin'
-    # TODO: voxel-registry plugin to get texture paths?
 
     @opts = opts
 
@@ -37,6 +38,30 @@ class Mine extends EventEmitter
     @setupTextures()
     @enable()
 
+Mine::timeToMine = (target) ->
+  return @opts.timeToMine(target) if @opts.timeToMine?  # custom callback
+
+  # if no registry, can't lookup per-block hardness, use same for all
+  return 9 if not @registry   
+
+  # from registry, get the innate difficulty of mining this block
+  blockID = game.getBlock(target.voxel)
+  blockName = @registry.getBlockName(blockID)
+  hardness = @registry.getBlockProps(blockName)?.hardness
+  hardness ?= 9
+
+  # if no held item concept, just use registry hardness
+  return hardness if not @hotbar  
+
+  # if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
+  heldItem = @hotbar.held()
+  speed = 1.0
+  speed = @registry.getItemProps(heldItem?.item)?.speed ? 1.0
+  finalTimeToMine = Math.max(hardness / speed, 0)
+  # TODO: more complex mining 'classes', e.g. shovel against dirt, axe against wood
+
+  return finalTimeToMine
+
 Mine::enable = ->
   @reach.on 'mining', @onMining = (target) =>
     if not target
@@ -45,7 +70,7 @@ Mine::enable = ->
 
     @progress += 1
 
-    hardness = @opts.timeToMine(target)
+    hardness = @timeToMine(target)
     if @instaMine || @progress > hardness
       @progress = 0
       @reach.emit 'stop mining', target

@@ -11,24 +11,32 @@
   };
 
   module.exports.pluginInfo = {
-    loadAfter: ['voxel-reach']
+    loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar']
   };
 
   Mine = (function(_super) {
     __extends(Mine, _super);
 
     function Mine(game, opts) {
-      var _ref,
+      var _ref, _ref1, _ref2,
         _this = this;
       this.game = game;
+      this.registry = (_ref = game.plugins) != null ? _ref.get('voxel-registry') : void 0;
+      this.hotbar = (_ref1 = game.plugins) != null ? _ref1.get('voxel-inventory-hotbar') : void 0;
+      this.reach = (function() {
+        var _ref3;
+        if ((_ref2 = (_ref3 = game.plugins) != null ? _ref3.get('voxel-reach') : void 0) != null) {
+          return _ref2;
+        } else {
+          throw 'voxel-mine requires "voxel-reach" plugin';
+        }
+      })();
       opts = opts != null ? opts : {};
-      if (opts.timeToMine == null) {
-        opts.timeToMine = function(voxel) {
-          return 9;
-        };
-      }
       if (opts.instaMine == null) {
         opts.instaMine = false;
+      }
+      if (opts.timeToMine == null) {
+        opts.timeToMine = void 0;
       }
       if (opts.progressTexturesPrefix == null) {
         opts.progressTexturesPrefix = void 0;
@@ -47,14 +55,6 @@
           return texture.wrapS = _this.game.THREE.RepeatWrapping;
         };
       }
-      this.reach = (function() {
-        var _ref1;
-        if ((_ref = (_ref1 = game.plugins) != null ? _ref1.get('voxel-reach') : void 0) != null) {
-          return _ref;
-        } else {
-          throw 'voxel-mine requires "voxel-reach" plugin';
-        }
-      })();
       this.opts = opts;
       this.instaMine = opts.instaMine;
       this.progress = 0;
@@ -68,6 +68,30 @@
 
   })(EventEmitter);
 
+  Mine.prototype.timeToMine = function(target) {
+    var blockID, blockName, finalTimeToMine, hardness, heldItem, speed, _ref, _ref1, _ref2;
+    if (this.opts.timeToMine != null) {
+      return this.opts.timeToMine(target);
+    }
+    if (!this.registry) {
+      return 9;
+    }
+    blockID = game.getBlock(target.voxel);
+    blockName = this.registry.getBlockName(blockID);
+    hardness = (_ref = this.registry.getBlockProps(blockName)) != null ? _ref.hardness : void 0;
+    if (hardness == null) {
+      hardness = 9;
+    }
+    if (!this.hotbar) {
+      return hardness;
+    }
+    heldItem = this.hotbar.held();
+    speed = 1.0;
+    speed = (_ref1 = (_ref2 = this.registry.getItemProps(heldItem != null ? heldItem.item : void 0)) != null ? _ref2.speed : void 0) != null ? _ref1 : 1.0;
+    finalTimeToMine = Math.max(hardness / speed, 0);
+    return finalTimeToMine;
+  };
+
   Mine.prototype.enable = function() {
     var _this = this;
     this.reach.on('mining', this.onMining = function(target) {
@@ -77,7 +101,7 @@
         return;
       }
       _this.progress += 1;
-      hardness = _this.opts.timeToMine(target);
+      hardness = _this.timeToMine(target);
       if (_this.instaMine || _this.progress > hardness) {
         _this.progress = 0;
         _this.reach.emit('stop mining', target);
