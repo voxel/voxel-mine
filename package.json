@@ -1,23 +1,22 @@
 {
-    "name": "voxel-mine",
-    "description": "mine blocks with damage overlay and variable hardness (voxel.js plugin)",
-    "version": "0.0.3",
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:deathcap/voxel-mine.git"
-    },
-    "dependencies": {
-    },
-    "devDependencies": {
-        "coffee-script": "1.6.3"
-    },
-    "peerDependencies": {
-        "voxel-engine": ">=0.19.0",
-        "voxel-reach": ">=0.0.1"
-    },
-    "scripts": {
-        "build": "coffee --compile *.coffee",
-        "prepublish": "coffee --compile *.coffee",
-        "watch": "coffee --watch --compile *.coffee"
-    }
+  "name": "voxel-mine",
+  "description": "mine blocks with damage overlay and variable hardness (voxel.js plugin)",
+  "version": "0.0.3",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:deathcap/voxel-mine.git"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "coffee-script": "1.6.3"
+  },
+  "peerDependencies": {
+    "voxel-plugins": ">=0.1.0",
+    "voxel-engine": ">=0.19.0",
+    "voxel-registry": ">=0.1.0",
+    "voxel-reach": ">=0.1.0",
+    "voxel-inventory-hotbar": ">=0.1.0"
+  },
+  "license": "MIT"
 }
