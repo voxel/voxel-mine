@@ -1,13 +1,12 @@
 {
   "name": "voxel-mine",
   "description": "mine blocks with damage overlay and variable hardness (voxel.js plugin)",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git@github.com:deathcap/voxel-mine.git"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "coffee-script": "1.6.3"
   },
