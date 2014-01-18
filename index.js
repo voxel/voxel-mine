@@ -18,7 +18,7 @@
     __extends(Mine, _super);
 
     function Mine(game, opts) {
-      var _ref, _ref1, _ref2,
+      var _ref, _ref1, _ref2, _ref3,
         _this = this;
       this.game = game;
       this.registry = (_ref = game.plugins) != null ? _ref.get('voxel-registry') : void 0;
@@ -52,6 +52,7 @@
           return texture.wrapS = _this.game.THREE.RepeatWrapping;
         };
       }
+      this.defaultTextureURL = (_ref3 = opts.defaultTextureURL) != null ? _ref3 : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARElEQVQ4y62TMQoAMAgD8/9PX7cuhYLmnAQTQZMkCdkXT7Mhb5YwHkwwNOQfkOZJNDI1MncLsO5XFFA8oLhQyYGSxMs9lwAf4Z8BoD8AAAAASUVORK5CYII=';
       this.opts = opts;
       this.instaMine = opts.instaMine;
       this.progress = 0;
@@ -139,7 +140,10 @@
       for (i = _i = 0, _ref = _this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         path = _this.registry.getTextureURL(_this.opts.progressTexturesPrefix + i);
         if (path == null) {
-          debugger;
+          if (_this.defaultTextureURL.indexOf('data:') === 0) {
+            delete _this.game.THREE.ImageUtils.crossOrigin;
+          }
+          path = _this.defaultTextureURL;
         }
         _results.push(_this.progressTextures.push(_this.game.THREE.ImageUtils.loadTexture(path)));
       }

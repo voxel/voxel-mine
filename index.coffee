@@ -15,7 +15,6 @@ class Mine extends EventEmitter
     opts = opts ? {}
     opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
     opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block
-    # TODO: voxel-registry plugin to get texture paths?
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
     opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, name = progressTexturesPrefix + #
 
@@ -24,6 +23,8 @@ class Mine extends EventEmitter
       texture.minFilter = @game.THREE.LinearMipMapLinearFilter
       texture.wrapT = @game.THREE.RepeatWrapping
       texture.wrapS = @game.THREE.RepeatWrapping
+
+    @defaultTextureURL = opts.defaultTextureURL ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARElEQVQ4y62TMQoAMAgD8/9PX7cuhYLmnAQTQZMkCdkXT7Mhb5YwHkwwNOQfkOZJNDI1MncLsO5XFFA8oLhQyYGSxMs9lwAf4Z8BoD8AAAAASUVORK5CYII='
 
     @opts = opts
 
@@ -104,8 +105,12 @@ Mine::setupTextures = ->
     for i in [0..@opts.progressTexturesCount]
       path = @registry.getTextureURL @opts.progressTexturesPrefix + i
       if not path?
-        debugger
-        # TODO: default texture if failed?
+        # fallback to default texture if missing
+        if @defaultTextureURL.indexOf('data:') == 0
+          # for some reason, data: URLs are not allowed with crossOrigin, see https://github.com/mrdoob/three.js/issues/687
+          # warning: this might break other stuff
+          delete this.game.THREE.ImageUtils.crossOrigin
+        path = @defaultTextureURL
       @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
 
 Mine::createOverlay = (target) ->
