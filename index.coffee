@@ -17,8 +17,7 @@ class Mine extends EventEmitter
     opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block
     # TODO: voxel-registry plugin to get texture paths?
     opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
-    opts.progressTexturesExt ?= ".png"       # suffix for path of damage texture overlay
-    opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, path = game.materials.texturePath + progressTextures{Prefix+#+Ext}
+    opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, name = progressTexturesPrefix + #
 
     opts.applyTextureParams ?= (texture) =>
       texture.magFilter = @game.THREE.NearestFilter
@@ -99,11 +98,15 @@ Mine::setupTextures = ->
   if not @texturesEnabled
     return
 
-  @progressTextures = []
+  @progressTextures = []  # TODO: placeholders until loaded?
 
-  for i in [0..@opts.progressTexturesCount]
-    path = (@game.materials.texturePath ? '') + @opts.progressTexturesPrefix + i + @opts.progressTexturesExt
-    @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
+  @registry.onTexturesReady () =>
+    for i in [0..@opts.progressTexturesCount]
+      path = @registry.getTextureURL @opts.progressTexturesPrefix + i
+      if not path?
+        debugger
+        # TODO: default texture if failed?
+      @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
 
 Mine::createOverlay = (target) ->
   if @instaMine or not @texturesEnabled

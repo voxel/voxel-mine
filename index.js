@@ -41,9 +41,6 @@
       if (opts.progressTexturesPrefix == null) {
         opts.progressTexturesPrefix = void 0;
       }
-      if (opts.progressTexturesExt == null) {
-        opts.progressTexturesExt = ".png";
-      }
       if (opts.progressTexturesCount == null) {
         opts.progressTexturesCount = 10;
       }
@@ -131,17 +128,23 @@
   };
 
   Mine.prototype.setupTextures = function() {
-    var i, path, _i, _ref, _ref1, _results;
+    var _this = this;
     if (!this.texturesEnabled) {
       return;
     }
     this.progressTextures = [];
-    _results = [];
-    for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      path = ((_ref1 = this.game.materials.texturePath) != null ? _ref1 : '') + this.opts.progressTexturesPrefix + i + this.opts.progressTexturesExt;
-      _results.push(this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path)));
-    }
-    return _results;
+    return this.registry.onTexturesReady(function() {
+      var i, path, _i, _ref, _results;
+      _results = [];
+      for (i = _i = 0, _ref = _this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        path = _this.registry.getTextureURL(_this.opts.progressTexturesPrefix + i);
+        if (path == null) {
+          debugger;
+        }
+        _results.push(_this.progressTextures.push(_this.game.THREE.ImageUtils.loadTexture(path)));
+      }
+      return _results;
+    });
   };
 
   Mine.prototype.createOverlay = function(target) {
