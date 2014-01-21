@@ -31,9 +31,11 @@ class Mine extends EventEmitter
     @instaMine = opts.instaMine
     @progress = 0
 
-    @texturesEnabled = @opts.progressTexturesPrefix?
-    @overlay = null
-    @setupTextures()
+    if @game.isClient
+      @texturesEnabled = @opts.progressTexturesPrefix?
+      @overlay = null
+      @setupTextures()
+
     @enable()
 
 Mine::timeToMine = (target) ->

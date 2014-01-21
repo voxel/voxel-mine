@@ -56,9 +56,11 @@
       this.opts = opts;
       this.instaMine = opts.instaMine;
       this.progress = 0;
-      this.texturesEnabled = this.opts.progressTexturesPrefix != null;
-      this.overlay = null;
-      this.setupTextures();
+      if (this.game.isClient) {
+        this.texturesEnabled = this.opts.progressTexturesPrefix != null;
+        this.overlay = null;
+        this.setupTextures();
+      }
       this.enable();
     }
 
