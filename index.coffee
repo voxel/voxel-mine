@@ -11,7 +11,7 @@ class Mine extends EventEmitter
     @game = game
     @registry = game.plugins?.get('voxel-registry')
     @hotbar = game.plugins?.get('voxel-inventory-hotbar')
-    @reach = game.plugins?.get('voxel-reach') ? throw 'voxel-mine requires "voxel-reach" plugin'
+    @reach = game.plugins?.get('voxel-reach') ? throw new Error('voxel-mine requires "voxel-reach" plugin')
     opts = opts ? {}
     opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
     opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block

@@ -27,7 +27,7 @@
         if ((_ref2 = (_ref3 = game.plugins) != null ? _ref3.get('voxel-reach') : void 0) != null) {
           return _ref2;
         } else {
-          throw 'voxel-mine requires "voxel-reach" plugin';
+          throw new Error('voxel-mine requires "voxel-reach" plugin');
         }
       })();
       opts = opts != null ? opts : {};
