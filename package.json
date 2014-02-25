@@ -7,15 +7,5 @@
     "url": "git@github.com:deathcap/voxel-mine.git"
   },
   "dependencies": {},
-  "devDependencies": {
-    "coffee-script": "1.6.3"
-  },
-  "peerDependencies": {
-    "voxel-plugins": ">=0.1.0",
-    "voxel-engine": ">=0.19.0",
-    "voxel-registry": ">=0.1.0",
-    "voxel-reach": ">=0.1.0",
-    "voxel-inventory-hotbar": ">=0.1.0"
-  },
   "license": "MIT"
 }
