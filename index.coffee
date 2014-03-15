@@ -103,7 +103,12 @@ Mine::setupTextures = ->
 
   @progressTextures = []  # TODO: placeholders until loaded?
 
-  @registry.onTexturesReady () =>
+  @registry.onTexturesReady () => @refreshTextures()
+  if @game.materials?.artPacks?
+    @game.materials.artPacks.on 'refresh', () => @refreshTextures()
+
+Mine::refreshTextures = ->
+    @progressTextures = []
     for i in [0..@opts.progressTexturesCount]
       path = @registry.getTextureURL @opts.progressTexturesPrefix + i
       if not path?

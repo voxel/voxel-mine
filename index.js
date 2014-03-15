@@ -137,27 +137,40 @@
   };
 
   Mine.prototype.setupTextures = function() {
+    var _ref;
     if (!this.texturesEnabled) {
       return;
     }
     this.progressTextures = [];
-    return this.registry.onTexturesReady((function(_this) {
+    this.registry.onTexturesReady((function(_this) {
       return function() {
-        var i, path, _i, _ref, _results;
-        _results = [];
-        for (i = _i = 0, _ref = _this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-          path = _this.registry.getTextureURL(_this.opts.progressTexturesPrefix + i);
-          if (path == null) {
-            if (_this.defaultTextureURL.indexOf('data:') === 0) {
-              delete _this.game.THREE.ImageUtils.crossOrigin;
-            }
-            path = _this.defaultTextureURL;
-          }
-          _results.push(_this.progressTextures.push(_this.game.THREE.ImageUtils.loadTexture(path)));
-        }
-        return _results;
+        return _this.refreshTextures();
       };
     })(this));
+    if (((_ref = this.game.materials) != null ? _ref.artPacks : void 0) != null) {
+      return this.game.materials.artPacks.on('refresh', (function(_this) {
+        return function() {
+          return _this.refreshTextures();
+        };
+      })(this));
+    }
+  };
+
+  Mine.prototype.refreshTextures = function() {
+    var i, path, _i, _ref, _results;
+    this.progressTextures = [];
+    _results = [];
+    for (i = _i = 0, _ref = this.opts.progressTexturesCount; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      path = this.registry.getTextureURL(this.opts.progressTexturesPrefix + i);
+      if (path == null) {
+        if (this.defaultTextureURL.indexOf('data:') === 0) {
+          delete this.game.THREE.ImageUtils.crossOrigin;
+        }
+        path = this.defaultTextureURL;
+      }
+      _results.push(this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path)));
+    }
+    return _results;
   };
 
   Mine.prototype.createOverlay = function(target) {
