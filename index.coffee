@@ -42,7 +42,7 @@ Mine::timeToMine = (target) ->
   return @opts.timeToMine(target) if @opts.timeToMine?  # custom callback
 
   # if no registry, can't lookup per-block hardness, use same for all
-  return 9 if not @registry   
+  return 9 if not @registry
 
   # from registry, get the innate difficulty of mining this block
   blockID = game.getBlock(target.voxel)
@@ -51,7 +51,7 @@ Mine::timeToMine = (target) ->
   hardness ?= 9
 
   # if no held item concept, just use registry hardness
-  return hardness if not @hotbar  
+  return hardness if not @hotbar
 
   # if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
   heldItem = @hotbar.held()
@@ -201,7 +201,7 @@ Mine::createOverlay = (target) ->
   @overlay = new @game.THREE.Object3D()
 
   @overlay.add(mesh)
-  @overlay.position.set(target.voxel[0] + offset[0], 
+  @overlay.position.set(target.voxel[0] + offset[0],
                    target.voxel[1] + offset[1],
                    target.voxel[2] + offset[2])
 
