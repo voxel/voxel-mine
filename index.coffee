@@ -12,6 +12,17 @@ class Mine extends EventEmitter
     @registry = game.plugins?.get('voxel-registry')
     @hotbar = game.plugins?.get('voxel-inventory-hotbar')
     @reach = game.plugins?.get('voxel-reach') ? throw new Error('voxel-mine requires "voxel-reach" plugin')
+
+    # continuous (non-discrete) firing is required to mine
+    if @game.controls?
+      throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls:{discreteFire:false,fireRate:100}})') if @game.controls.needs_discrete_fire != false
+      # TODO: can we just set needs_discrete_fire and fire_rate ourselves?
+      @msPerFire = @game.controls.fire_rate
+    else
+      # server-side, game.controls unavailable, assume 100 ms TODO
+      @msPerFire = 100
+    # TODO: factor in @msPerFire into mining time
+
     opts = opts ? {}
     opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
     opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block

@@ -30,6 +30,14 @@
           throw new Error('voxel-mine requires "voxel-reach" plugin');
         }
       })();
+      if (this.game.controls != null) {
+        if (this.game.controls.needs_discrete_fire !== false) {
+          throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls:{discreteFire:false,fireRate:100}})');
+        }
+        this.msPerFire = this.game.controls.fire_rate;
+      } else {
+        this.msPerFire = 100;
+      }
       opts = opts != null ? opts : {};
       if (opts.instaMine == null) {
         opts.instaMine = false;
