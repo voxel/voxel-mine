@@ -17,11 +17,10 @@ class Mine extends EventEmitter
     if @game.controls?
       throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls:{discreteFire:false,fireRate:100}})') if @game.controls.needs_discrete_fire != false
       # TODO: can we just set needs_discrete_fire and fire_rate ourselves?
-      @msPerFire = @game.controls.fire_rate
+      @secondsPerFire = @game.controls.fire_rate / 1000  # ms -> s
     else
       # server-side, game.controls unavailable, assume 100 ms TODO
-      @msPerFire = 100
-    # TODO: factor in @msPerFire into mining time
+      @secondsPerFire = 100.0 / 1000.0
 
     opts = opts ? {}
     opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
@@ -79,15 +78,16 @@ Mine::enable = ->
       console.log("no block mined")
       return
 
-    @progress += 1
+    @progress += 1    # incremented each fire (@secondsPerFire)
+    progressSeconds = @progress * @secondsPerFire # how long they've been mining
 
     hardness = @timeToMine(target)
-    if @instaMine || @progress > hardness
+    if @instaMine || progressSeconds >= hardness
       @progress = 0
       @reach.emit 'stop mining', target
       @emit 'break', target
 
-    @updateForStage(@progress, hardness)
+    @updateForStage(progressSeconds, hardness)
 
   @reach.on 'start mining', @onStartMining = (target) =>
     if not target

@@ -34,9 +34,9 @@
         if (this.game.controls.needs_discrete_fire !== false) {
           throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls:{discreteFire:false,fireRate:100}})');
         }
-        this.msPerFire = this.game.controls.fire_rate;
+        this.secondsPerFire = this.game.controls.fire_rate / 1000;
       } else {
-        this.msPerFire = 100;
+        this.secondsPerFire = 100.0 / 1000.0;
       }
       opts = opts != null ? opts : {};
       if (opts.instaMine == null) {
@@ -104,19 +104,20 @@
   Mine.prototype.enable = function() {
     this.reach.on('mining', this.onMining = (function(_this) {
       return function(target) {
-        var hardness;
+        var hardness, progressSeconds;
         if (!target) {
           console.log("no block mined");
           return;
         }
         _this.progress += 1;
+        progressSeconds = _this.progress * _this.secondsPerFire;
         hardness = _this.timeToMine(target);
-        if (_this.instaMine || _this.progress > hardness) {
+        if (_this.instaMine || progressSeconds >= hardness) {
           _this.progress = 0;
           _this.reach.emit('stop mining', target);
           _this.emit('break', target);
         }
-        return _this.updateForStage(_this.progress, hardness);
+        return _this.updateForStage(progressSeconds, hardness);
       };
     })(this));
     this.reach.on('start mining', this.onStartMining = (function(_this) {
