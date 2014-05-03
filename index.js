@@ -78,7 +78,7 @@
   })(EventEmitter);
 
   Mine.prototype.timeToMine = function(target) {
-    var blockID, blockName, effectiveTool, finalTimeToMine, hardness, heldItem, speed, toolClass, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+    var blockID, blockName, effectiveTool, finalTimeToMine, hardness, heldItem, speed, toolClass, _ref, _ref1, _ref2;
     if (this.opts.timeToMine != null) {
       return this.opts.timeToMine(target);
     }
@@ -87,16 +87,16 @@
     }
     blockID = game.getBlock(target.voxel);
     blockName = this.registry.getBlockName(blockID);
-    hardness = (_ref = (_ref1 = this.registry.getBlockProps(blockName)) != null ? _ref1.hardness : void 0) != null ? _ref : 1.0;
-    effectiveTool = (_ref2 = (_ref3 = this.registry.getBlockProps(blockName)) != null ? _ref3.effectiveTool : void 0) != null ? _ref2 : 'pickaxe';
+    hardness = (_ref = this.registry.getProp(blockName, 'hardness')) != null ? _ref : 1.0;
+    effectiveTool = (_ref1 = this.registry.getProp(blockName, 'effectiveTool')) != null ? _ref1 : 'pickaxe';
     if (!this.hotbar) {
       return hardness;
     }
     heldItem = this.hotbar.held();
-    toolClass = (_ref4 = this.registry.getItemProps(heldItem != null ? heldItem.item : void 0)) != null ? _ref4.toolClass : void 0;
+    toolClass = this.registry.getProp(heldItem != null ? heldItem.item : void 0, 'toolClass');
     speed = 1.0;
     if (toolClass === effectiveTool) {
-      speed = (_ref5 = (_ref6 = this.registry.getItemProps(heldItem != null ? heldItem.item : void 0)) != null ? _ref6.speed : void 0) != null ? _ref5 : 1.0;
+      speed = (_ref2 = this.registry.getProp(heldItem != null ? heldItem.item : void 0, 'speed')) != null ? _ref2 : 1.0;
     }
     finalTimeToMine = Math.max(hardness / speed, 0);
     return finalTimeToMine;

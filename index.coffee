@@ -57,22 +57,22 @@ Mine::timeToMine = (target) ->
   # from registry, get the innate difficulty of mining this block
   blockID = game.getBlock(target.voxel)
   blockName = @registry.getBlockName(blockID)
-  hardness = @registry.getBlockProps(blockName)?.hardness ? 1.0 # seconds
+  hardness = @registry.getProp(blockName, 'hardness') ? 1.0 # seconds
 
-  effectiveTool = @registry.getBlockProps(blockName)?.effectiveTool ? 'pickaxe'
+  effectiveTool = @registry.getProp(blockName, 'effectiveTool') ? 'pickaxe'
 
   # if no held item concept, just use registry hardness
   return hardness if not @hotbar
 
   # if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
   heldItem = @hotbar.held()
-  toolClass = @registry.getItemProps(heldItem?.item)?.toolClass
+  toolClass = @registry.getProp(heldItem?.item, 'toolClass')
 
   speed = 1.0
 
   if toolClass == effectiveTool
     # this tool is effective against this block, so it mines faster
-    speed = @registry.getItemProps(heldItem?.item)?.speed ? 1.0
+    speed = @registry.getProp(heldItem?.item, 'speed') ? 1.0
     # TODO: if wrong tool, deal double damage?
 
 
