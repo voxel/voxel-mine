@@ -66,7 +66,7 @@
       this.instaMine = opts.instaMine;
       this.progress = 0;
       if (this.game.isClient) {
-        this.texturesEnabled = this.opts.progressTexturesPrefix != null;
+        this.texturesEnabled = !this.opts.disableOverlay && (this.opts.progressTexturesPrefix != null) && (this.game.shell == null);
         this.overlay = null;
         this.setupTextures();
       }

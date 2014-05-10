@@ -42,7 +42,9 @@ class Mine extends EventEmitter
     @progress = 0
 
     if @game.isClient
-      @texturesEnabled = @opts.progressTexturesPrefix?
+      # texture overlays require three.js and textures TODO: non-three.js (gl-now/ndarray) support
+      @texturesEnabled = !@opts.disableOverlay && @opts.progressTexturesPrefix? && !@game.shell?
+
       @overlay = null
       @setupTextures()
 
