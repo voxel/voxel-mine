@@ -4,7 +4,7 @@ module.exports = (game, opts) ->
   return new Mine(game, opts)
 
 module.exports.pluginInfo =
-  loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar']
+  loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar', 'voxel-decals']
 
 class Mine extends EventEmitter
   constructor: (game, opts) ->
@@ -12,6 +12,7 @@ class Mine extends EventEmitter
     @registry = game.plugins?.get('voxel-registry')
     @hotbar = game.plugins?.get('voxel-inventory-hotbar')
     @reach = game.plugins?.get('voxel-reach') ? throw new Error('voxel-mine requires "voxel-reach" plugin')
+    @decals = game.plugins?.get('voxel-decals') # optional
 
     # continuous (non-discrete) firing is required to mine
     if @game.controls?
@@ -42,8 +43,8 @@ class Mine extends EventEmitter
     @progress = 0
 
     if @game.isClient
-      # texture overlays require three.js and textures TODO: non-three.js (gl-now/ndarray) support
-      @texturesEnabled = !@opts.disableOverlay && @opts.progressTexturesPrefix? && !@game.shell?
+      # texture overlays require three.js and textures, or voxel-decals with game.shell
+      @texturesEnabled = !!(!@opts.disableOverlay && @opts.progressTexturesPrefix? && (!@game.shell? || @decals))
 
       @overlay = null
       @setupTextures()
@@ -130,6 +131,12 @@ Mine::setupTextures = ->
     @game.materials.artPacks.on 'refresh', () => @refreshTextures()
 
 Mine::refreshTextures = ->
+  @progressTextures = []
+
+  if @decals
+    for i in [0..@opts.progressTexturesCount]
+      @progressTextures.push('furnace_front_on') # TODO
+  else
     @progressTextures = []
     for i in [0..@opts.progressTexturesCount]
       path = @registry.getTextureURL @opts.progressTexturesPrefix + i
@@ -148,6 +155,20 @@ Mine::createOverlay = (target) ->
 
   @destroyOverlay()
 
+  if @decals
+    @decalPosition = target.voxel.slice(0).reverse() # TODO: fix reverse
+    @decalNormal = target.normal.slice(0).reverse()
+
+    @decals.add
+      position: @decalPosition
+      normal: @decalNormal
+      texture: @progressTextures[0]
+
+    @decals.update()
+  else
+    @createOverlayThreejs(target)
+
+Mine::createOverlayThreejs = (target) ->
   geometry = new @game.THREE.Geometry()
   # TODO: actually compute this
   if target.normal[2] == 1
@@ -250,13 +271,25 @@ Mine::setOverlayTexture = (texture) ->
   if not @overlay or not @texturesEnabled
     return
 
-  @opts.applyTextureParams(texture)
-  @overlay.children[0].material.map = texture
-  @overlay.children[0].material.needsUpdate = true
+  if @decals
+    @decals.changeDecal
+      position: @decalPosition
+      normal: @decalNormal
+      texture: texture
+    @decals.update()
+  else
+    @opts.applyTextureParams(texture)
+    @overlay.children[0].material.map = texture
+    @overlay.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
   if not @overlay or not @texturesEnabled
     return
 
-  @game.scene.remove(@overlay)
+  if @decals
+    @decals.remove(@decalPosition) if @decalPosition?
+    @decals.update()
+    @decalPosition = undefined
+  else
+    @game.scene.remove(@overlay)
   @overlay = null
