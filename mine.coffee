@@ -4,7 +4,7 @@ module.exports = (game, opts) ->
   return new Mine(game, opts)
 
 module.exports.pluginInfo =
-  loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar', 'voxel-decals']
+  loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar', 'voxel-decals', 'voxel-stitch']
 
 class Mine extends EventEmitter
   constructor: (game, opts) ->
@@ -13,6 +13,7 @@ class Mine extends EventEmitter
     @hotbar = game.plugins?.get('voxel-inventory-hotbar')
     @reach = game.plugins?.get('voxel-reach') ? throw new Error('voxel-mine requires "voxel-reach" plugin')
     @decals = game.plugins?.get('voxel-decals') # optional
+    @stitch = game.plugins?.get('voxel-stitch') # optional
 
     # continuous (non-discrete) firing is required to mine
     if @game.controls?
@@ -130,12 +131,18 @@ Mine::setupTextures = ->
   if @game.materials?.artPacks?
     @game.materials.artPacks.on 'refresh', () => @refreshTextures()
 
-Mine::refreshTextures = ->
-  @progressTextures = []
-
   if @decals
+    # add to atlas
     for i in [0..@opts.progressTexturesCount]
-      @progressTextures.push('furnace_front_on') # TODO
+      name = @opts.progressTexturesPrefix + i
+
+      @stitch.preloadTexture name
+
+      @progressTextures.push name
+
+Mine::refreshTextures = ->
+  if @decals
+    #
   else
     @progressTextures = []
     for i in [0..@opts.progressTexturesCount]
@@ -268,11 +275,11 @@ Mine::updateForStage = (progress, hardness) ->
   @setOverlayTexture(texture)
 
 Mine::setOverlayTexture = (texture) ->
-  if not @overlay or not @texturesEnabled
+  if not @texturesEnabled or (not @overlay and not @decalPosition)
     return
 
   if @decals
-    @decals.changeDecal
+    @decals.change
       position: @decalPosition
       normal: @decalNormal
       texture: texture
@@ -283,7 +290,7 @@ Mine::setOverlayTexture = (texture) ->
     @overlay.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
-  if not @overlay or not @texturesEnabled
+  if not @texturesEnabled or (not @overlay and not @decalPosition)
     return
 
   if @decals
