@@ -1,7 +1,7 @@
 {
   "name": "voxel-mine",
   "description": "mine blocks with damage overlay and variable hardness (voxel.js plugin)",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "mine.coffee",
   "repository": {
     "type": "git",
@@ -14,7 +14,9 @@
   ],
   "dependencies": {},
   "browserify": {
-    "transform": [ "coffeeify" ]
+    "transform": [
+      "coffeeify"
+    ]
   },
   "license": "MIT"
 }
