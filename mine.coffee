@@ -163,8 +163,8 @@ Mine::createOverlay = (target) ->
   @destroyOverlay()
 
   if @decals
-    @decalPosition = target.voxel.slice(0).reverse() # TODO: fix reverse
-    @decalNormal = target.normal.slice(0).reverse()
+    @decalPosition = target.voxel.slice(0)
+    @decalNormal = target.normal.slice(0)
 
     @decals.add
       position: @decalPosition
