@@ -45,7 +45,9 @@ class Mine extends EventEmitter
 
     if @game.isClient
       # texture overlays require three.js and textures, or voxel-decals with game.shell
-      @texturesEnabled = !!(!@opts.disableOverlay && @opts.progressTexturesPrefix? && (!@game.shell? || @decals))
+      @texturesEnabled = !@opts.disableOverlay && @opts.progressTexturesPrefix?
+      if @texturesEnabled && @game.shell? && !@decals
+          throw new Error('voxel-mine with game-shell requires voxel-decals to enable textures')
 
       @overlay = null
       @setupTextures()
