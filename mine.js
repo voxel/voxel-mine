@@ -1,84 +1,101 @@
-EventEmitter = (require 'events').EventEmitter
+'use strict';
 
-module.exports = (game, opts) ->
-  return new Mine(game, opts)
+const EventEmitter = require('events').EventEmitter;
 
-module.exports.pluginInfo =
+module.exports = (game, opts) => new Mine(game, opts);
+
+module.exports.pluginInfo = {
   loadAfter: ['voxel-reach', 'voxel-registry', 'voxel-inventory-hotbar', 'voxel-decals', 'voxel-stitch']
+}
 
-class Mine extends EventEmitter
-  constructor: (game, opts) ->
-    @game = game
-    @registry = game.plugins?.get('voxel-registry')
-    @hotbar = game.plugins?.get('voxel-inventory-hotbar')
-    @reach = game.plugins?.get('voxel-reach') ? throw new Error('voxel-mine requires "voxel-reach" plugin')
-    @decals = game.plugins?.get('voxel-decals') # optional
-    @stitch = game.plugins?.get('voxel-stitch') # optional
+class Mine extends EventEmitter {
+  constructor(game, opts) {
+    super();
 
-    # continuous (non-discrete) firing is required to mine
-    if @game.controls?
-      throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls:{discreteFire:false,fireRate:100}})') if @game.controls.needs_discrete_fire != false
-      # TODO: can we just set needs_discrete_fire and fire_rate ourselves?
-      @secondsPerFire = @game.controls.fire_rate / 1000  # ms -> s
-    else
-      # server-side, game.controls unavailable, assume 100 ms TODO
-      @secondsPerFire = 100.0 / 1000.0
+    this.game = game;
+    this.registry = game.plugins.get('voxel-registry');
+    this.hotbar = game.plugins.get('voxel-inventory-hotbar');
 
-    opts = opts ? {}
-    opts.instaMine ?= false     # instantly mine? (if true, ignores timeToMine)
-    opts.timeToMine ?= undefined         # callback to get how long it should take to completely mine this block
-    opts.progressTexturesPrefix ?= undefined # prefix for damage overlay texture filenames; can be undefined to disable the overlay
-    opts.progressTexturesCount ?= 10         # number of damage textures, cycles 0 to N-1, name = progressTexturesPrefix + #
+    this.reach = game.plugins.get('voxel-reach');
+    if (!this.reach) throw new Error('voxel-mine requires "voxel-reach" plugin');
 
-    opts.applyTextureParams ?= (texture) =>
-      texture.magFilter = @game.THREE.NearestFilter
-      texture.minFilter = @game.THREE.LinearMipMapLinearFilter
-      texture.wrapT = @game.THREE.RepeatWrapping
-      texture.wrapS = @game.THREE.RepeatWrapping
+    this.decals = game.plugins.get('voxel-decals');
+    this.stitch = game.plugins.get('voxel-stitch');
 
-    @defaultTextureURL = opts.defaultTextureURL ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARElEQVQ4y62TMQoAMAgD8/9PX7cuhYLmnAQTQZMkCdkXT7Mhb5YwHkwwNOQfkOZJNDI1MncLsO5XFFA8oLhQyYGSxMs9lwAf4Z8BoD8AAAAASUVORK5CYII='
+    // continuous (non-discrete) firing is required to mine
+    if (this.game.controls) {
+      if (this.game.controls.needs_discrete_fire !== false) {
+        throw new Error('voxel-mine requires discreteFire:false,fireRate:100 in voxel-control options (or voxel-engine controls discreteFire:false,fireRate:100)');
+      }
+      // TODO: can we just set needs_discrete_fire and fire_rate ourselves?
+      this.secondsPerFire = this.game.controls.fire_rate / 1000;  // ms -> s
+    } else {
+      // server-side, game.controls unavailable, assume 100 ms TODO
+      this.secondsPerFire = 100.0 / 1000.0;
+    }
 
-    @opts = opts
+    if (!opts) opts = {};
+    if (opts.instaMine === undefined) opts.instaMine = false;     // instantly mine? (if true, ignores timeToMine)
+    if (opts.timeToMine === undefined) opts.timeToMine = undefined; // callback to get how long it should take to completely mine this block
+    if (opts.progressTexturesPrefix === undefined) opts.progressTexturesPrefix = undefined; // prefix for damage overlay texture filenames; can be undefined to disable the overlay
+    if (opts.progressTexturesCount === undefined) opts.progressTexturesCount = 10; // number of damage textures, cycles 0 to N-1, name = progressTexturesPrefix + #
 
-    @instaMine = opts.instaMine
-    @progress = 0
+    if (opts.applyTextureParams === undefined) {
+      opts.applyTextureParams = (texture) => {
+        texture.magFilter = this.game.THREE.NearestFilter;
+        texture.minFilter = this.game.THREE.LinearMipMapLinearFilter;
+        texture.wrapT = this.game.THREE.RepeatWrapping;
+        texture.wrapS = this.game.THREE.RepeatWrapping;
+      }
+    }
 
-    if @game.isClient
-      # texture overlays require three.js and textures, or voxel-decals with game.shell
-      @texturesEnabled = !@opts.disableOverlay && @opts.progressTexturesPrefix?
-      if @texturesEnabled && @game.shell? && !@decals
-          throw new Error('voxel-mine with game-shell requires voxel-decals to enable textures')
+    if (opts.defaultTextureURL === undefined) opts.defaultTextureURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARElEQVQ4y62TMQoAMAgD8/9PX7cuhYLmnAQTQZMkCdkXT7Mhb5YwHkwwNOQfkOZJNDI1MncLsO5XFFA8oLhQyYGSxMs9lwAf4Z8BoD8AAAAASUVORK5CYII=';
 
-      @overlay = null
-      @setupTextures()
+    this.opts = opts;
 
-    @enable()
+    this.instaMine = opts.instaMine;
+    this.progress = 0;
 
+    if (this.game.isClient) {
+      // texture overlays require three.js and textures, or voxel-decals with game.shell
+      this.texturesEnabled = !this.opts.disableOverlay && this.opts.progressTexturesPrefix !== undefined;
+      if (this.texturesEnabled && this.game.shell && !this.decals) {
+          throw new Error('voxel-mine with game-shell requires voxel-decals to enable textures');
+      }
+
+      this.overlay = null;
+      this.setupTextures();
+    }
+
+    this.enable();
+  }
+
+  // TODO
 Mine::timeToMine = (target) ->
-  return @opts.timeToMine(target) if @opts.timeToMine?  # custom callback
+  return this.opts.timeToMine(target) if this.opts.timeToMine?  # custom callback
 
   # if no registry, can't lookup per-block hardness, use same for all
-  return 9 if not @registry
+  return 9 if not this.registry
 
   # from registry, get the innate difficulty of mining this block
   blockID = game.getBlock(target.voxel)
-  blockName = @registry.getBlockName(blockID)
-  hardness = @registry.getProp(blockName, 'hardness') ? 1.0 # seconds
+  blockName = this.registry.getBlockName(blockID)
+  hardness = this.registry.getProp(blockName, 'hardness') ? 1.0 # seconds
 
-  effectiveTool = @registry.getProp(blockName, 'effectiveTool') ? 'pickaxe'
+  effectiveTool = this.registry.getProp(blockName, 'effectiveTool') ? 'pickaxe'
 
   # if no held item concept, just use registry hardness
-  return hardness if not @hotbar
+  return hardness if not this.hotbar
 
   # if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
-  heldItem = @hotbar.held()
-  toolClass = @registry.getProp(heldItem?.item, 'toolClass')
+  heldItem = this.hotbar.held()
+  toolClass = this.registry.getProp(heldItem?.item, 'toolClass')
 
   speed = 1.0
 
   if toolClass == effectiveTool
     # this tool is effective against this block, so it mines faster
-    speed = @registry.getProp(heldItem?.item, 'speed') ? 1.0
+    speed = this.registry.getProp(heldItem?.item, 'speed') ? 1.0
     # TODO: if wrong tool, deal double damage?
 
 
@@ -88,141 +105,141 @@ Mine::timeToMine = (target) ->
   return finalTimeToMine
 
 Mine::enable = ->
-  @reach.on 'mining', @onMining = (target) =>
+  this.reach.on 'mining', this.onMining = (target) =>
     if not target
       console.log("no block mined")
       return
 
-    @progress += 1    # incremented each fire (@secondsPerFire)
-    progressSeconds = @progress * @secondsPerFire # how long they've been mining
+    this.progress += 1    # incremented each fire (this.secondsPerFire)
+    progressSeconds = this.progress * this.secondsPerFire # how long they've been mining
 
-    hardness = @timeToMine(target)
-    if @instaMine || progressSeconds >= hardness
-      @progress = 0
-      @reach.emit 'stop mining', target
-      @emit 'break', target
+    hardness = this.timeToMine(target)
+    if this.instaMine || progressSeconds >= hardness
+      this.progress = 0
+      this.reach.emit 'stop mining', target
+      this.emit 'break', target
 
-    @updateForStage(progressSeconds, hardness)
+    this.updateForStage(progressSeconds, hardness)
 
-  @reach.on 'start mining', @onStartMining = (target) =>
+  this.reach.on 'start mining', this.onStartMining = (target) =>
     if not target
       return
 
-    @createOverlay(target)
+    this.createOverlay(target)
 
-  @reach.on 'stop mining', @onStopMining = (target) =>
+  this.reach.on 'stop mining', this.onStopMining = (target) =>
     if not target
       return
 
-    # Reset @progress if mouse released
-    @destroyOverlay()
-    @progress = 0
+    # Reset this.progress if mouse released
+    this.destroyOverlay()
+    this.progress = 0
 
 Mine::disable = ->
-  @reach.removeListener 'mining', @onMining
-  @reach.removeListener 'start mining', @onStartMining
-  @reach.removeListener 'stop mining', @onStopMining
+  this.reach.removeListener 'mining', this.onMining
+  this.reach.removeListener 'start mining', this.onStartMining
+  this.reach.removeListener 'stop mining', this.onStopMining
 
 Mine::setupTextures = ->
-  if not @texturesEnabled
+  if not this.texturesEnabled
     return
 
-  @progressTextures = []  # TODO: placeholders until loaded?
+  this.progressTextures = []  # TODO: placeholders until loaded?
 
-  @registry.onTexturesReady () => @refreshTextures()
-  if @game.materials?.artPacks?
-    @game.materials.artPacks.on 'refresh', () => @refreshTextures()
+  this.registry.onTexturesReady () => this.refreshTextures()
+  if this.game.materials?.artPacks?
+    this.game.materials.artPacks.on 'refresh', () => this.refreshTextures()
 
-  if @decals
+  if this.decals
     # add to atlas
-    for i in [0..@opts.progressTexturesCount]
-      name = @opts.progressTexturesPrefix + i
+    for i in [0..this.opts.progressTexturesCount]
+      name = this.opts.progressTexturesPrefix + i
 
-      @stitch.preloadTexture name
+      this.stitch.preloadTexture name
 
-      @progressTextures.push name
+      this.progressTextures.push name
 
 Mine::refreshTextures = ->
-  if @decals
+  if this.decals
     #
   else
-    @progressTextures = []
-    for i in [0..@opts.progressTexturesCount]
-      path = @registry.getTextureURL @opts.progressTexturesPrefix + i
+    this.progressTextures = []
+    for i in [0..this.opts.progressTexturesCount]
+      path = this.registry.getTextureURL this.opts.progressTexturesPrefix + i
       if not path?
         # fallback to default texture if missing
-        if @defaultTextureURL.indexOf('data:') == 0
+        if this.defaultTextureURL.indexOf('data:') == 0
           # for some reason, data: URLs are not allowed with crossOrigin, see https://github.com/mrdoob/three.js/issues/687
           # warning: this might break other stuff
           delete this.game.THREE.ImageUtils.crossOrigin
-        path = @defaultTextureURL
-      @progressTextures.push(@game.THREE.ImageUtils.loadTexture(path))
+        path = this.defaultTextureURL
+      this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
 
 Mine::createOverlay = (target) ->
-  if @instaMine or not @texturesEnabled
+  if this.instaMine or not this.texturesEnabled
     return
 
-  @destroyOverlay()
+  this.destroyOverlay()
 
-  if @decals
-    @decalPosition = target.voxel.slice(0)
-    @decalNormal = target.normal.slice(0)
+  if this.decals
+    this.decalPosition = target.voxel.slice(0)
+    this.decalNormal = target.normal.slice(0)
 
-    @decals.add
-      position: @decalPosition
-      normal: @decalNormal
-      texture: @progressTextures[0]
+    this.decals.add
+      position: this.decalPosition
+      normal: this.decalNormal
+      texture: this.progressTextures[0]
 
-    @decals.update()
+    this.decals.update()
   else
-    @createOverlayThreejs(target)
+    this.createOverlayThreejs(target)
 
 Mine::createOverlayThreejs = (target) ->
-  geometry = new @game.THREE.Geometry()
+  geometry = new this.game.THREE.Geometry()
   # TODO: actually compute this
   if target.normal[2] == 1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
     offset = [0, 0, 1]
   else if target.normal[1] == 1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
     offset = [0, 1, 0]
   else if target.normal[0] == 1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
     offset = [1, 0, 0]
   else if target.normal[0] == -1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
     offset = [0, 0, 0]
   else if target.normal[1] == -1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
     offset = [0, 0, 0]
   else if target.normal[2] == -1
-    geometry.vertices.push(new @game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new @game.THREE.Vector3(1, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
+    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
     offset = [0, 0, 0]
   else
     console.log "unknown face", target.normal
     return
 
   # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
-  geometry.faces.push(new @game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
-  geometry.faces.push(new @game.THREE.Face3(0, 2, 3))
+  geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
+  geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
 
   geometry.computeCentroids()
   geometry.computeFaceNormals()
@@ -244,61 +261,61 @@ Mine::createOverlayThreejs = (target) ->
       ]
     ]
 
-  material = new @game.THREE.MeshLambertMaterial()
+  material = new this.game.THREE.MeshLambertMaterial()
 
-  material.map = @progressTextures[0]
-  @opts.applyTextureParams(material.map)
+  material.map = this.progressTextures[0]
+  this.opts.applyTextureParams(material.map)
 
-  material.side = @game.THREE.FrontSide
+  material.side = this.game.THREE.FrontSide
   material.transparent = true
   material.polygonOffset = true
   material.polygonOffsetFactor = -1.0
   material.polygonOffsetUnits = -1.0
-  mesh = new @game.THREE.Mesh(geometry, material)
-  @overlay = new @game.THREE.Object3D()
+  mesh = new this.game.THREE.Mesh(geometry, material)
+  this.overlay = new this.game.THREE.Object3D()
 
-  @overlay.add(mesh)
-  @overlay.position.set(target.voxel[0] + offset[0],
+  this.overlay.add(mesh)
+  this.overlay.position.set(target.voxel[0] + offset[0],
                    target.voxel[1] + offset[1],
                    target.voxel[2] + offset[2])
 
-  @game.scene.add(@overlay)
+  this.game.scene.add(this.overlay)
 
-  return @overlay
+  return this.overlay
 
 # Set overlay texture based on mining progress stage
 Mine::updateForStage = (progress, hardness) ->
-  if not @texturesEnabled
+  if not this.texturesEnabled
     return
 
-  index = Math.floor((progress / hardness) * (@progressTextures.length - 1))
-  texture = @progressTextures[index]
+  index = Math.floor((progress / hardness) * (this.progressTextures.length - 1))
+  texture = this.progressTextures[index]
 
-  @setOverlayTexture(texture)
+  this.setOverlayTexture(texture)
 
 Mine::setOverlayTexture = (texture) ->
-  if not @texturesEnabled or (not @overlay and not @decalPosition)
+  if not this.texturesEnabled or (not this.overlay and not this.decalPosition)
     return
 
-  if @decals
-    @decals.change
-      position: @decalPosition
-      normal: @decalNormal
+  if this.decals
+    this.decals.change
+      position: this.decalPosition
+      normal: this.decalNormal
       texture: texture
-    @decals.update()
+    this.decals.update()
   else
-    @opts.applyTextureParams(texture)
-    @overlay.children[0].material.map = texture
-    @overlay.children[0].material.needsUpdate = true
+    this.opts.applyTextureParams(texture)
+    this.overlay.children[0].material.map = texture
+    this.overlay.children[0].material.needsUpdate = true
 
 Mine::destroyOverlay = () ->
-  if not @texturesEnabled or (not @overlay and not @decalPosition)
+  if not this.texturesEnabled or (not this.overlay and not this.decalPosition)
     return
 
-  if @decals
-    @decals.remove(@decalPosition) if @decalPosition?
-    @decals.update()
-    @decalPosition = undefined
+  if this.decals
+    this.decals.remove(this.decalPosition) if this.decalPosition?
+    this.decals.update()
+    this.decalPosition = undefined
   else
-    @game.scene.remove(@overlay)
-  @overlay = null
+    this.game.scene.remove(this.overlay)
+  this.overlay = null
