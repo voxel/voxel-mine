@@ -70,111 +70,134 @@ class Mine extends EventEmitter {
     this.enable();
   }
 
-  // TODO
-Mine::timeToMine = (target) ->
-  return this.opts.timeToMine(target) if this.opts.timeToMine?  # custom callback
+  timeToMine(target) {
+    if (this.opts.timeToMine !== undefined) {  // custom callback
+      return this.opts.timeToMine(target);
+    }
 
-  # if no registry, can't lookup per-block hardness, use same for all
-  return 9 if not this.registry
+    // if no registry, can't lookup per-block hardness, use same for all
+    if (!this.registry) return 9;
 
-  # from registry, get the innate difficulty of mining this block
-  blockID = game.getBlock(target.voxel)
-  blockName = this.registry.getBlockName(blockID)
-  hardness = this.registry.getProp(blockName, 'hardness') ? 1.0 # seconds
+    //  from registry, get the innate difficulty of mining this block
+    const blockID = game.getBlock(target.voxel);
+    const blockName = this.registry.getBlockName(blockID);
+    let hardness = this.registry.getProp(blockName, 'hardness')
+    if (hardness === undefined) hardness = 1.0; // seconds
 
-  effectiveTool = this.registry.getProp(blockName, 'effectiveTool') ? 'pickaxe'
+    let effectiveTool = this.registry.getProp(blockName, 'effectiveTool');
+    if (effectiveTool === undefined) effectiveTool = 'pickaxe';
 
-  # if no held item concept, just use registry hardness
-  return hardness if not this.hotbar
+    // if no held item concept, just use registry hardness
+    if (!this.hotbar) return hardness;
 
-  # if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
-  heldItem = this.hotbar.held()
-  toolClass = this.registry.getProp(heldItem?.item, 'toolClass')
+    // if hotbar is available - factor in effectiveness of currently held tool, shortens mining time
+    const heldItem = this.hotbar.held();
+    const toolClass = this.registry.getProp(heldItem !== undefined ? heldItem.item : heldItem, 'toolClass');
 
-  speed = 1.0
+    let speed = 1.0;
 
-  if toolClass == effectiveTool
-    # this tool is effective against this block, so it mines faster
-    speed = this.registry.getProp(heldItem?.item, 'speed') ? 1.0
-    # TODO: if wrong tool, deal double damage?
+    if (toolClass === effectiveTool) {
+      //  this tool is effective against this block, so it mines faster
+      speed = this.registry.getProp(heldItem !== undefined ? heldItem.item : heldItem, 'speed');
+      if (speed === undefined) speed = 1.0;
+      // TODO: if wrong tool, deal double damage?
+    }
 
+    const finalTimeToMine = Math.max(hardness / speed, 0);
+    // TODO: more complex mining 'classes', e.g. shovel against dirt, axe against wood
 
-  finalTimeToMine = Math.max(hardness / speed, 0)
-  # TODO: more complex mining 'classes', e.g. shovel against dirt, axe against wood
+    return finalTimeToMine;
+  }
 
-  return finalTimeToMine
+  enable() {
+    this.reach.on('mining', this.onMining = (target) => {
+      if (!target) {
+        console.log('no block mined');
+        return;
+      }
 
-Mine::enable = ->
-  this.reach.on 'mining', this.onMining = (target) =>
-    if not target
-      console.log("no block mined")
-      return
+      this.progress += 1;   // incremented each fire (this.secondsPerFire)
+      const progressSeconds = this.progress * this.secondsPerFire; // how long they've been mining
 
-    this.progress += 1    # incremented each fire (this.secondsPerFire)
-    progressSeconds = this.progress * this.secondsPerFire # how long they've been mining
+      const hardness = this.timeToMine(target);
+      if (this.instaMine || progressSeconds >= hardness) {
+        this.progress = 0;
+        this.reach.emit('stop mining', target);
+        this.emit('break', target);
+      }
 
-    hardness = this.timeToMine(target)
-    if this.instaMine || progressSeconds >= hardness
-      this.progress = 0
-      this.reach.emit 'stop mining', target
-      this.emit 'break', target
+      this.updateForStage(progressSeconds, hardness);
+    });
 
-    this.updateForStage(progressSeconds, hardness)
+    this.reach.on('start mining', this.onStartMining = (target) => {
+      if (!target) {
+        return;
+      }
 
-  this.reach.on 'start mining', this.onStartMining = (target) =>
-    if not target
-      return
+      this.createOverlay(target);
+    });
 
-    this.createOverlay(target)
+    this.reach.on('stop mining', this.onStopMining = (target) => {
+      if (!target) {
+        return;
+      }
 
-  this.reach.on 'stop mining', this.onStopMining = (target) =>
-    if not target
-      return
+      // Reset this.progress if mouse released
+      this.destroyOverlay();
+      this.progress = 0;
+    });
 
-    # Reset this.progress if mouse released
-    this.destroyOverlay()
-    this.progress = 0
+  disable() {
+    this.reach.removeListener('mining', this.onMining);
+    this.reach.removeListener('start mining', this.onStartMining);
+    this.reach.removeListener('stop mining', this.onStopMining);
+  }
 
-Mine::disable = ->
-  this.reach.removeListener 'mining', this.onMining
-  this.reach.removeListener 'start mining', this.onStartMining
-  this.reach.removeListener 'stop mining', this.onStopMining
+  setupTextures() {
+    if (!this.texturesEnabled) {
+      return;
+    }
 
-Mine::setupTextures = ->
-  if not this.texturesEnabled
-    return
+    this.progressTextures = [];  // TODO: placeholders until loaded?
 
-  this.progressTextures = []  # TODO: placeholders until loaded?
+    this.registry.onTexturesReady(() => this.refreshTextures());
+    if (this.game.materials.artPacks) {
+      this.game.materials.artPacks.on('refresh', () => this.refreshTextures());
+    }
 
-  this.registry.onTexturesReady () => this.refreshTextures()
-  if this.game.materials?.artPacks?
-    this.game.materials.artPacks.on 'refresh', () => this.refreshTextures()
+    if (this.decals) {
+      // add to atlas
+      for (let i = 0; i < this.opts.progressTexturesCount; ++i) {
+        const name = this.opts.progressTexturesPrefix + i;
 
-  if this.decals
-    # add to atlas
-    for i in [0..this.opts.progressTexturesCount]
-      name = this.opts.progressTexturesPrefix + i
+        this.stitch.preloadTexture(name);
 
-      this.stitch.preloadTexture name
+        this.progressTextures.push(name);
+      }
+    }
+  }
 
-      this.progressTextures.push name
-
-Mine::refreshTextures = ->
-  if this.decals
-    #
-  else
-    this.progressTextures = []
-    for i in [0..this.opts.progressTexturesCount]
-      path = this.registry.getTextureURL this.opts.progressTexturesPrefix + i
-      if not path?
-        # fallback to default texture if missing
-        if this.defaultTextureURL.indexOf('data:') == 0
-          # for some reason, data: URLs are not allowed with crossOrigin, see https://github.com/mrdoob/three.js/issues/687
-          # warning: this might break other stuff
-          delete this.game.THREE.ImageUtils.crossOrigin
-        path = this.defaultTextureURL
-      this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path))
-
+  refreshTextures() {
+    if (this.decals) {
+      
+    } else {
+      this.progressTextures = [];
+      for (let i = 0; i < this.opts.progressTexturesCount; ++i) {
+        let path = this.registry.getTextureURL(this.opts.progressTexturesPrefix + i);
+        if (path === undefined) {
+          // fallback to default texture if missing
+          if (this.defaultTextureURL.indexOf('data:') === 0) {
+            // for some reason, data: URLs are not allowed with crossOrigin, see https://github.com/mrdoob/three.js/issues/687
+            // warning: this might break other stuff
+            delete this.game.THREE.ImageUtils.crossOrigin;
+          }
+          path = this.defaultTextureURL;
+        }
+        this.progressTextures.push(this.game.THREE.ImageUtils.loadTexture(path));
+      }
+    }
+  }
+//TODO
 Mine::createOverlay = (target) ->
   if this.instaMine or not this.texturesEnabled
     return
