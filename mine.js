@@ -146,6 +146,7 @@ class Mine extends EventEmitter {
       this.destroyOverlay();
       this.progress = 0;
     });
+  }
 
   disable() {
     this.reach.removeListener('mining', this.onMining);
@@ -197,148 +198,72 @@ class Mine extends EventEmitter {
       }
     }
   }
-//TODO
-Mine::createOverlay = (target) ->
-  if this.instaMine or not this.texturesEnabled
-    return
 
-  this.destroyOverlay()
+  createOverlay(target) {
+    if (this.instaMine || !this.texturesEnabled) {
+      return;
+    }
 
-  if this.decals
-    this.decalPosition = target.voxel.slice(0)
-    this.decalNormal = target.normal.slice(0)
+    this.destroyOverlay();
 
-    this.decals.add
-      position: this.decalPosition
-      normal: this.decalNormal
-      texture: this.progressTextures[0]
+    if (this.decals) {
+      this.decalPosition = target.voxel.slice(0);
+      this.decalNormal = target.normal.slice(0);
 
-    this.decals.update()
-  else
-    this.createOverlayThreejs(target)
+      this.decals.add({
+        position: this.decalPosition,
+        normal: this.decalNormal,
+        texture: this.progressTextures[0]});
 
-Mine::createOverlayThreejs = (target) ->
-  geometry = new this.game.THREE.Geometry()
-  # TODO: actually compute this
-  if target.normal[2] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    offset = [0, 0, 1]
-  else if target.normal[1] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    offset = [0, 1, 0]
-  else if target.normal[0] == 1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    offset = [1, 0, 0]
-  else if target.normal[0] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    offset = [0, 0, 0]
-  else if target.normal[1] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 1))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 1))
-    offset = [0, 0, 0]
-  else if target.normal[2] == -1
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 0, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(0, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 1, 0))
-    geometry.vertices.push(new this.game.THREE.Vector3(1, 0, 0))
-    offset = [0, 0, 0]
-  else
-    console.log "unknown face", target.normal
-    return
+      this.decals.update();
+    } else {
+      throw new Error('voxel-mine three.js support removed');
+    }
+  }
 
-  # rectangle geometry, see http://stackoverflow.com/questions/19085369/rendering-custom-geometry-in-three-js
-  geometry.faces.push(new this.game.THREE.Face3(0, 1, 2)) # counter-clockwise winding order
-  geometry.faces.push(new this.game.THREE.Face3(0, 2, 3))
+// Set overlay texture based on mining progress stage
+  updateForStage(progress, hardness) {
+    if (!this.texturesEnabled) {
+      return;
+    }
 
-  geometry.computeCentroids()
-  geometry.computeFaceNormals()
-  geometry.computeVertexNormals()
-  geometry.faceVertexUvs = [
-      [
-        [
-          {x:0, y:0},
-          {x:1, y:0},
-          {x:1, y:1},
-          {x:0, y:1}
-        ],
-        [
-          {x:0, y:0},
-          {x:1, y:1},
-          {x:0, y:1},
-          {x:0, y:1},
-        ],
-      ]
-    ]
+    const index = Math.floor((progress / hardness) * (this.progressTextures.length - 1));
+    const texture = this.progressTextures[index];
 
-  material = new this.game.THREE.MeshLambertMaterial()
+    this.setOverlayTexture(texture);
+  }
 
-  material.map = this.progressTextures[0]
-  this.opts.applyTextureParams(material.map)
+  setOverlayTexture(texture) {
+    if (!this.texturesEnabled || (!this.overlay && !this.decalPosition)) {
+      return;
+    }
 
-  material.side = this.game.THREE.FrontSide
-  material.transparent = true
-  material.polygonOffset = true
-  material.polygonOffsetFactor = -1.0
-  material.polygonOffsetUnits = -1.0
-  mesh = new this.game.THREE.Mesh(geometry, material)
-  this.overlay = new this.game.THREE.Object3D()
+    if (this.decals) {
+      this.decals.change({
+        position: this.decalPosition,
+        normal: this.decalNormal,
+        texture: texture});
+      this.decals.update();
+    } else {
+      this.opts.applyTextureParams(texture);
+      this.overlay.children[0].material.map = texture;
+      this.overlay.children[0].material.needsUpdate = true;
+    }
+  }
 
-  this.overlay.add(mesh)
-  this.overlay.position.set(target.voxel[0] + offset[0],
-                   target.voxel[1] + offset[1],
-                   target.voxel[2] + offset[2])
+  destroyOverlay() {
+    if (!this.texturesEnabled || (!this.overlay && !this.decalPosition)) {
+      return;
+    }
 
-  this.game.scene.add(this.overlay)
+    if (this.decals) {
+      if (this.decalPosition !== undefined) this.decals.remove(this.decalPosition);
+      this.decals.update();
+      this.decalPosition = undefined;
+    } else {
+      this.game.scene.remove(this.overlay);
+    }
 
-  return this.overlay
-
-# Set overlay texture based on mining progress stage
-Mine::updateForStage = (progress, hardness) ->
-  if not this.texturesEnabled
-    return
-
-  index = Math.floor((progress / hardness) * (this.progressTextures.length - 1))
-  texture = this.progressTextures[index]
-
-  this.setOverlayTexture(texture)
-
-Mine::setOverlayTexture = (texture) ->
-  if not this.texturesEnabled or (not this.overlay and not this.decalPosition)
-    return
-
-  if this.decals
-    this.decals.change
-      position: this.decalPosition
-      normal: this.decalNormal
-      texture: texture
-    this.decals.update()
-  else
-    this.opts.applyTextureParams(texture)
-    this.overlay.children[0].material.map = texture
-    this.overlay.children[0].material.needsUpdate = true
-
-Mine::destroyOverlay = () ->
-  if not this.texturesEnabled or (not this.overlay and not this.decalPosition)
-    return
-
-  if this.decals
-    this.decals.remove(this.decalPosition) if this.decalPosition?
-    this.decals.update()
-    this.decalPosition = undefined
-  else
-    this.game.scene.remove(this.overlay)
-  this.overlay = null
+    this.overlay = null;
+  }
+}
