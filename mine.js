@@ -79,7 +79,7 @@ class Mine extends EventEmitter {
     if (!this.registry) return 9;
 
     //  from registry, get the innate difficulty of mining this block
-    const blockID = game.getBlock(target.voxel);
+    const blockID = this.game.getBlock(target.voxel);
     const blockName = this.registry.getBlockName(blockID);
     let hardness = this.registry.getProp(blockName, 'hardness')
     if (hardness === undefined) hardness = 1.0; // seconds
